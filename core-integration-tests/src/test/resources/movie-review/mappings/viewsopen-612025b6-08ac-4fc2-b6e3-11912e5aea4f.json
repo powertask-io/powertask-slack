@@ -1,0 +1,35 @@
+{
+  "id" : "612025b6-08ac-4fc2-b6e3-11912e5aea4f",
+  "name" : "viewsopen",
+  "request" : {
+    "url" : "/views.open",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "contains" : "Absolutely"
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"ok\":true,\"view\":{\"id\":\"V013SJ6DLQZ\",\"team_id\":\"T011Y0VBN1G\",\"type\":\"modal\",\"blocks\":[{\"type\":\"input\",\"block_id\":\"movie\",\"label\":{\"type\":\"plain_text\",\"text\":\"Which movie did you see?\",\"emoji\":true},\"optional\":false,\"element\":{\"type\":\"plain_text_input\",\"action_id\":\"movie_text\",\"multiline\":false}},{\"type\":\"input\",\"block_id\":\"rating\",\"label\":{\"type\":\"plain_text\",\"text\":\"What rating would you give it?\",\"emoji\":true},\"hint\":{\"type\":\"plain_text\",\"text\":\"Choose between 1 and 10, 10 being awesome!\",\"emoji\":true},\"optional\":true,\"element\":{\"type\":\"plain_text_input\",\"action_id\":\"rating_long\",\"multiline\":false}},{\"type\":\"input\",\"block_id\":\"when\",\"label\":{\"type\":\"plain_text\",\"text\":\"When did you see it?\",\"emoji\":true},\"optional\":true,\"element\":{\"type\":\"datepicker\",\"action_id\":\"when_date\"}},{\"type\":\"input\",\"block_id\":\"elaborate\",\"label\":{\"type\":\"plain_text\",\"text\":\"Do you want to tell us a bit more about it?\",\"emoji\":true},\"optional\":false,\"element\":{\"type\":\"radio_buttons\",\"action_id\":\"elaborate_boolean\",\"initial_option\":{\"text\":{\"type\":\"plain_text\",\"text\":\"Absolutely!\",\"emoji\":true},\"value\":\"true\"},\"options\":[{\"text\":{\"type\":\"plain_text\",\"text\":\"Absolutely!\",\"emoji\":true},\"value\":\"true\"},{\"text\":{\"type\":\"plain_text\",\"text\":\"I rather not...\",\"emoji\":true},\"value\":\"false\"}]}}],\"private_metadata\":\"\",\"callback_id\":\"modal-task-submit\\/6e80bfaa-938b-11ea-a803-0af7c94b86fd\",\"state\":{\"values\":{\"elaborate\":{\"elaborate_boolean\":{\"type\":\"radio_buttons\",\"selected_option\":{\"text\":{\"type\":\"plain_text\",\"text\":\"Absolutely!\",\"emoji\":true},\"value\":\"true\"}}}}},\"hash\":\"1589203770.1ffcd275\",\"title\":{\"type\":\"plain_text\",\"text\":\"Basic Review\",\"emoji\":true},\"clear_on_close\":false,\"notify_on_close\":false,\"close\":{\"type\":\"plain_text\",\"text\":\"Cancel\",\"emoji\":true},\"submit\":{\"type\":\"plain_text\",\"text\":\"Submit\",\"emoji\":true},\"previous_view_id\":null,\"root_view_id\":\"V013SJ6DLQZ\",\"app_id\":\"A011R97HD54\",\"external_id\":\"\",\"app_installed_team_id\":\"T011Y0VBN1G\",\"bot_id\":\"B012AKTURQ9\"}}",
+    "headers" : {
+      "date" : "Mon, 11 May 2020 13:29:30 GMT",
+      "server" : "Apache",
+      "x-content-type-options" : "nosniff",
+      "x-slack-req-id" : "5f26d96bd87d679b861353bb116c11f6",
+      "x-oauth-scopes" : "incoming-webhook,commands,users:read.email,users:read,chat:write",
+      "expires" : "Mon, 26 Jul 1997 05:00:00 GMT",
+      "cache-control" : "private, no-cache, no-store, must-revalidate",
+      "x-xss-protection" : "0",
+      "vary" : "Accept-Encoding",
+      "pragma" : "no-cache",
+      "strict-transport-security" : "max-age=31536000; includeSubDomains; preload",
+      "referrer-policy" : "no-referrer",
+      "x-slack-backend" : "r",
+      "content-type" : "application/json; charset=utf-8",
+      "x-via" : "haproxy-www-dqpa"
+    }
+  },
+  "uuid" : "612025b6-08ac-4fc2-b6e3-11912e5aea4f",
+  "persistent" : true,
+  "insertionIndex" : 27
+}

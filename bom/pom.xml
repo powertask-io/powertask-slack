@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.powertask.slack</groupId>
+        <artifactId>powertask-slack-root</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>powertask-slack-bom</artifactId>
+    <packaging>pom</packaging>
+    <name>Powertask Slack - BOM</name>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- External Dependencies -->
+            <dependency>
+                <groupId>org.camunda.bpm</groupId>
+                <artifactId>camunda-bom</artifactId>
+                <version>${version.camunda}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Our own modules -->
+            <dependency>
+                <groupId>io.powertask.slack</groupId>
+                <artifactId>powertask-slack-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.powertask.slack</groupId>
+                <artifactId>powertask-slack-spring-boot</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.powertask.slack</groupId>
+                <artifactId>powertask-slack-spring-boot-autoconfigure</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.powertask.slack</groupId>
+                <artifactId>powertask-slack-spring-boot-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.powertask.slack</groupId>
+                <artifactId>powertask-slack-spring-boot-starter-web-authentication</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.powertask.slack</groupId>
+                <artifactId>powertask-slack-examples</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.powertask.slack</groupId>
+                <artifactId>powertask-slack-spring-boot-example</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+</project>

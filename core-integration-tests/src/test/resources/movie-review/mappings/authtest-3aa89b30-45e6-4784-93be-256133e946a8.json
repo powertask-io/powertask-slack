@@ -1,0 +1,32 @@
+{
+  "id" : "3aa89b30-45e6-4784-93be-256133e946a8",
+  "name" : "authtest",
+  "request" : {
+    "url" : "/auth.test",
+    "method" : "POST"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"ok\":true,\"url\":\"https:\\/\\/eamelink.slack.com\\/\",\"team\":\"eamelink\",\"user\":\"tasker\",\"team_id\":\"T011Y0VBN1G\",\"user_id\":\"U012MS5PW7J\",\"bot_id\":\"B012AKTURQ9\"}",
+    "headers" : {
+      "date" : "Mon, 11 May 2020 13:30:00 GMT",
+      "server" : "Apache",
+      "x-content-type-options" : "nosniff",
+      "x-slack-req-id" : "34b4337d051135da3689be2a172a1939",
+      "x-oauth-scopes" : "incoming-webhook,commands,users:read.email,users:read,chat:write",
+      "expires" : "Mon, 26 Jul 1997 05:00:00 GMT",
+      "cache-control" : "private, no-cache, no-store, must-revalidate",
+      "x-xss-protection" : "0",
+      "vary" : "Accept-Encoding",
+      "pragma" : "no-cache",
+      "strict-transport-security" : "max-age=31536000; includeSubDomains; preload",
+      "referrer-policy" : "no-referrer",
+      "x-slack-backend" : "r",
+      "content-type" : "application/json; charset=utf-8",
+      "x-via" : "haproxy-www-uz0v"
+    }
+  },
+  "uuid" : "3aa89b30-45e6-4784-93be-256133e946a8",
+  "persistent" : true,
+  "scenarioName" : "scenario-1-auth.test"
+}

@@ -1,0 +1,37 @@
+{
+  "id" : "a355c1e8-3f8e-4545-a7e8-c7a399824fb9",
+  "name" : "chatpostmessage",
+  "request" : {
+    "url" : "/chat.postMessage",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "contains" : "Basic%20Review",
+      "caseInsensitive" : false
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"ok\":true,\"channel\":\"D011WKN3PV3\",\"ts\":\"1589203765.000600\",\"message\":{\"bot_id\":\"B012AKTURQ9\",\"type\":\"message\",\"text\":\"Task: Basic Review\",\"user\":\"U012MS5PW7J\",\"ts\":\"1589203765.000600\",\"team\":\"T011Y0VBN1G\",\"bot_profile\":{\"id\":\"B012AKTURQ9\",\"deleted\":false,\"name\":\"PowerTask.io\",\"updated\":1588319558,\"app_id\":\"A011R97HD54\",\"icons\":{\"image_36\":\"https:\\/\\/a.slack-edge.com\\/80588\\/img\\/plugins\\/app\\/bot_36.png\",\"image_48\":\"https:\\/\\/a.slack-edge.com\\/80588\\/img\\/plugins\\/app\\/bot_48.png\",\"image_72\":\"https:\\/\\/a.slack-edge.com\\/80588\\/img\\/plugins\\/app\\/service_72.png\"},\"team_id\":\"T011Y0VBN1G\"},\"blocks\":[{\"type\":\"section\",\"block_id\":\"PQ4q0\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"You have a new task:\\n*Basic Review*\",\"verbatim\":false}},{\"type\":\"actions\",\"block_id\":\"accept\",\"elements\":[{\"type\":\"button\",\"action_id\":\"modal-task-open\\/6e80bfaa-938b-11ea-a803-0af7c94b86fd\",\"text\":{\"type\":\"plain_text\",\"text\":\"Open\",\"emoji\":true}}]}]}}",
+    "headers" : {
+      "date" : "Mon, 11 May 2020 13:29:25 GMT",
+      "server" : "Apache",
+      "x-slack-req-id" : "b3861ef7a3e229fee7f786e3c4a08a87",
+      "x-oauth-scopes" : "incoming-webhook,commands,users:read.email,users:read,chat:write",
+      "x-accepted-oauth-scopes" : "chat:write",
+      "x-slack-backend" : "r",
+      "x-content-type-options" : "nosniff",
+      "expires" : "Mon, 26 Jul 1997 05:00:00 GMT",
+      "cache-control" : "private, no-cache, no-store, must-revalidate",
+      "x-xss-protection" : "0",
+      "vary" : "Accept-Encoding",
+      "pragma" : "no-cache",
+      "strict-transport-security" : "max-age=31536000; includeSubDomains; preload",
+      "referrer-policy" : "no-referrer",
+      "content-type" : "application/json; charset=utf-8",
+      "x-via" : "haproxy-www-kjn3"
+    }
+  },
+  "uuid" : "a355c1e8-3f8e-4545-a7e8-c7a399824fb9",
+  "persistent" : true,
+  "insertionIndex" : 25
+}

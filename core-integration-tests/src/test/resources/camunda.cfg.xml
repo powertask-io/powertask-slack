@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans   http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="processEngineConfiguration" class="org.camunda.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration">
+
+    <!-- Empty beans map to for testing purpose -->
+    <property name="beans">
+      <map/>
+    </property>
+
+    <property name="processEnginePlugins">
+      <list>
+        <bean class="io.powertask.slack.usertasks.plugin.TaskListenerPlugin" />
+      </list>
+    </property>
+    <property name="jobExecutorActivate" value="false" />
+    <property name="dbMetricsReporterActivate" value="false" />
+    <property name="historyLevel" value="HISTORY_LEVEL_NONE" />
+  </bean>
+</beans>
