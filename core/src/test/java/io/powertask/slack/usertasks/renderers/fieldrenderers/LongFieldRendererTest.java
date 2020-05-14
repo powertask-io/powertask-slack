@@ -104,7 +104,7 @@ class LongFieldRendererTest {
 
     List<FormFieldValidationConstraint> constraints = new ArrayList<>();
     constraints.add(new FormFieldValidationConstraintImpl("min", "10"));
-    constraints.add(new FormFieldValidationConstraintImpl("max", "100"));
+    constraints.add(new FormFieldValidationConstraintImpl("max", "101"));
     formField.setValidationConstraints(constraints);
 
     // Value is below 'min' constraint
@@ -122,7 +122,27 @@ class LongFieldRendererTest {
     Map<String, ViewState.Value> fieldsMax = Collections.singletonMap("1234_long", valueMax);
 
     assertEquals(
+        // The configured max is exclusive, but we report an inclusive value
         Either.left("Maximum value is 100"),
         new LongFieldRenderer(formField).extractValue(formField, fieldsMax));
+  }
+
+  @Test
+  public void maxValueIsExclusive() {
+    String id = "1234";
+    FormFieldImpl formField = getBaseField(id);
+
+    List<FormFieldValidationConstraint> constraints = new ArrayList<>();
+    constraints.add(new FormFieldValidationConstraintImpl("max", "11"));
+    formField.setValidationConstraints(constraints);
+
+    // Value is above 'max' constraint
+    ViewState.Value value = new ViewState.Value();
+    value.setValue("11");
+    Map<String, ViewState.Value> fields = Collections.singletonMap("1234_long", value);
+
+    assertEquals(
+        Either.left("Maximum value is 10"),
+        new LongFieldRenderer(formField).extractValue(formField, fields));
   }
 }
