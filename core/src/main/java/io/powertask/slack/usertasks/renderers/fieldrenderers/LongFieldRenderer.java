@@ -30,7 +30,7 @@ public class LongFieldRenderer extends AbstractFieldRenderer {
 
   private static final String FIELD_SUFFIX = "_long";
   private static final String CONSTRAINT_MIN = "min";
-  // FIXME, in Camunda this is exclusive! Also for maxlength of strings. Should we fix Camunda?
+  // Be aware! In the Camunda Task List, this is an exclusive constraint. We mimic that.
   private static final String CONSTRAINT_MAX = "max";
 
   public LongFieldRenderer(FormField formField) {
@@ -67,8 +67,8 @@ public class LongFieldRenderer extends AbstractFieldRenderer {
 
         Optional<Long> maxConstraint =
             FieldInformation.getLongConstraint(formField, CONSTRAINT_MAX);
-        if (maxConstraint.isPresent() && longValue > maxConstraint.get()) {
-          return Either.left("Maximum value is " + maxConstraint.get());
+        if (maxConstraint.isPresent() && longValue >= maxConstraint.get()) {
+          return Either.left("Maximum value is " + (maxConstraint.get() - 1));
         }
 
         return Either.right(Optional.of(longValue));
