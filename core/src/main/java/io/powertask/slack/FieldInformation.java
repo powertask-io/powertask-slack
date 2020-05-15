@@ -11,7 +11,7 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.powertask.slack.usertasks.renderers;
+package io.powertask.slack;
 
 import com.slack.api.model.block.composition.BlockCompositions;
 import com.slack.api.model.block.composition.PlainTextObject;
@@ -20,7 +20,7 @@ import org.camunda.bpm.engine.form.FormField;
 
 public class FieldInformation {
 
-  static Optional<Optional<String>> getConstraint(FormField formField, String name) {
+  public static Optional<Optional<String>> getConstraint(FormField formField, String name) {
     return formField.getValidationConstraints().stream()
         .filter(
             formFieldValidationConstraint -> formFieldValidationConstraint.getName().equals(name))
@@ -50,7 +50,7 @@ public class FieldInformation {
                                 "Configuration for constraint " + name + " missing!")));
   }
 
-  static Optional<String> getStringProperty(FormField formField, String name) {
+  public static Optional<String> getStringProperty(FormField formField, String name) {
     if (!formField.getProperties().containsKey(name)) {
       return Optional.empty();
     } else {

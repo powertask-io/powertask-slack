@@ -11,33 +11,33 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.powertask.slack.usertasks.renderers.fieldrenderers;
+package io.powertask.slack.modals.renderers.fieldrenderers;
 
+import static com.slack.api.model.block.composition.BlockCompositions.option;
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.slack.api.model.block.element.BlockElement;
-import com.slack.api.model.block.element.PlainTextInputElement;
+import com.slack.api.model.block.element.RadioButtonsElement;
 import com.slack.api.model.view.ViewState;
+import com.slack.api.model.view.ViewState.SelectedOption;
 import io.vavr.control.Either;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.camunda.bpm.engine.form.FormFieldValidationConstraint;
 import org.camunda.bpm.engine.impl.form.FormFieldImpl;
-import org.camunda.bpm.engine.impl.form.FormFieldValidationConstraintImpl;
-import org.camunda.bpm.engine.impl.form.type.StringFormType;
+import org.camunda.bpm.engine.impl.form.type.BooleanFormType;
 import org.camunda.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl;
 import org.junit.jupiter.api.Test;
 
-class StringFieldRendererTest {
+class BooleanFieldRendererTest {
 
   private FormFieldImpl getBaseField(String id) {
     FormFieldImpl formField = new FormFieldImpl();
-    formField.setType(new StringFormType());
-    formField.setValue(new PrimitiveTypeValueImpl.StringValueImpl(null));
+    formField.setType(new BooleanFormType());
+    formField.setValue(new PrimitiveTypeValueImpl.BooleanValueImpl(null));
     formField.setId(id);
     return formField;
   }
@@ -48,12 +48,14 @@ class StringFieldRendererTest {
 
     FormFieldImpl formField = getBaseField(id);
 
-    BlockElement renderedElement =
-        new io.powertask.slack.usertasks.renderers.fieldrenderers.StringFieldRenderer(formField)
-            .renderElement();
+    BlockElement renderedElement = new BooleanFieldRenderer(formField).renderElement();
 
     BlockElement expectedElement =
-        PlainTextInputElement.builder().multiline(false).actionId(id + "_text").build();
+        RadioButtonsElement.builder()
+            .actionId("1234_boolean")
+            .options(
+                Arrays.asList(option(plainText("Yes"), "true"), option(plainText("No"), "false")))
+            .build();
 
     assertEquals(expectedElement, renderedElement);
   }
@@ -61,32 +63,25 @@ class StringFieldRendererTest {
   @Test
   void renderFullOptionsElement() {
     String id = "1234";
-    String value = "the-value";
-    String placeholder = "Fill it out...";
+    Boolean value = true;
 
     FormFieldImpl formField = getBaseField(id);
-    formField.setValue(new PrimitiveTypeValueImpl.StringValueImpl(value));
+
+    formField.setValue(new PrimitiveTypeValueImpl.BooleanValueImpl(value));
 
     Map<String, String> properties = new HashMap<>();
-    properties.put("slack-multiline", "true");
-    properties.put("slack-placeholder", placeholder);
+    properties.put("slack-true-label", "Yep");
+    properties.put("slack-false-label", "Nope");
     formField.setProperties(properties);
 
-    ArrayList<FormFieldValidationConstraint> constraints = new ArrayList<>();
-    constraints.add(new FormFieldValidationConstraintImpl("minlength", "10"));
-    constraints.add(new FormFieldValidationConstraintImpl("maxlength", "30"));
-    formField.setValidationConstraints(constraints);
-
-    BlockElement renderedElement = new StringFieldRenderer(formField).renderElement();
+    BlockElement renderedElement = new BooleanFieldRenderer(formField).renderElement();
 
     BlockElement expectedElement =
-        PlainTextInputElement.builder()
-            .initialValue(value)
-            .multiline(true)
-            .minLength(10)
-            .maxLength(30)
-            .placeholder(plainText(placeholder))
-            .actionId(id + "_text")
+        RadioButtonsElement.builder()
+            .actionId("1234_boolean")
+            .initialOption(option(plainText("Yep"), "true"))
+            .options(
+                Arrays.asList(option(plainText("Yep"), "true"), option(plainText("Nope"), "false")))
             .build();
 
     assertEquals(expectedElement, renderedElement);
@@ -97,13 +92,16 @@ class StringFieldRendererTest {
     String id = "1234";
     FormFieldImpl formField = getBaseField(id);
 
-    ViewState.Value value = new ViewState.Value();
-    value.setValue("Hello, there!");
+    SelectedOption selectedOption = new SelectedOption();
+    selectedOption.setValue("true");
 
-    Map<String, ViewState.Value> fields = Collections.singletonMap("1234_text", value);
+    ViewState.Value value = new ViewState.Value();
+    value.setSelectedOption(selectedOption);
+
+    Map<String, ViewState.Value> fields = Collections.singletonMap("1234_boolean", value);
 
     assertEquals(
-        Either.right(Optional.of("Hello, there!")),
-        new StringFieldRenderer(formField).extractValue(formField, fields));
+        Either.right(Optional.of("true")),
+        new BooleanFieldRenderer(formField).extractValue(formField, fields));
   }
 }

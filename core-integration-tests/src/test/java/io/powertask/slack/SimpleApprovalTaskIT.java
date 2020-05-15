@@ -51,6 +51,10 @@ public class SimpleApprovalTaskIT extends AbstractIntegrationTest {
 
     Map<String, String> substitutions = new HashMap<>();
     substitutions.put("$.actions[0].action_id", "single-message-task/" + task.getId() + "/1");
+
+    // There's some async work happening after rendering that we want to be completed.
+    Thread.sleep(100);
+
     slackInteraction("block-action.http", substitutions);
 
     // Wait for async processing of the incoming request.

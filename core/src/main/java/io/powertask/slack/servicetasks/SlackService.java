@@ -48,10 +48,7 @@ public class SlackService {
             req -> req.channel(userResolver.toSlackUserId(engineUserId)).text(message));
 
     MessageRef messageRef =
-        ImmutableMessageRef.builder()
-            .channel(response.getMessage().getChannel())
-            .ts(response.getTs())
-            .build();
+        ImmutableMessageRef.builder().channel(response.getChannel()).ts(response.getTs()).build();
 
     return wrapExceptions(() -> gson.toJson(messageRef));
   }

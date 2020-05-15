@@ -16,7 +16,6 @@ package io.powertask.slack.usertasks.renderers;
 import static com.slack.api.model.block.Blocks.section;
 import static com.slack.api.model.block.composition.BlockCompositions.markdownText;
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
-import static com.slack.api.model.view.Views.*;
 import static io.powertask.slack.SlackApiOps.requireOk;
 
 import com.slack.api.RequestConfigurator;
@@ -28,26 +27,25 @@ import com.slack.api.bolt.request.builtin.ViewSubmissionRequest;
 import com.slack.api.bolt.response.Response;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
 import com.slack.api.model.block.ActionsBlock;
-import com.slack.api.model.block.LayoutBlock;
 import com.slack.api.model.block.element.ButtonElement;
-import com.slack.api.model.view.View;
 import com.slack.api.model.view.ViewState;
+import io.powertask.slack.CamundaPropertiesResolver;
+import io.powertask.slack.FormLikePropertiesBase;
+import io.powertask.slack.modals.renderers.ModalRenderer;
 import io.powertask.slack.usertasks.TaskDetails;
-import io.powertask.slack.usertasks.renderers.fieldrenderers.*;
+import io.powertask.slack.usertasks.TaskVariablesResolver;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.form.FormData;
-import org.camunda.bpm.engine.form.FormField;
 import org.camunda.bpm.engine.form.TaskFormData;
-import org.camunda.bpm.engine.impl.form.type.*;
+import org.camunda.bpm.engine.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ModalTaskRenderer extends AbstractTaskRenderer {
+public class ModalTaskRenderer extends FormLikePropertiesBase<TaskDetails> implements TaskRenderer {
 
   private static final Logger logger = LoggerFactory.getLogger(ModalTaskRenderer.class);
 
@@ -55,20 +53,25 @@ public class ModalTaskRenderer extends AbstractTaskRenderer {
       Pattern.compile("^modal-task-open/([a-z0-9\\-]+)$");
   private static final Pattern taskSubmitPattern =
       Pattern.compile("^modal-task-submit/([a-z0-9\\-]+)$");
+  protected final BiFunction<TaskResult, Context, Response> submissionListener;
   private final ProcessEngine processEngine;
 
-  private static final String PROPERTY_SLACK_TITLE = "slack-title";
+  private final ModalRenderer modalRenderer;
 
   public ModalTaskRenderer(
       BiFunction<TaskResult, Context, Response> submissionListener, ProcessEngine processEngine) {
-    super(processEngine, submissionListener);
+    super(
+        new CamundaPropertiesResolver<>(processEngine.getRepositoryService()),
+        new TaskVariablesResolver(processEngine.getTaskService()));
 
+    this.submissionListener = submissionListener;
     this.processEngine = processEngine;
+    this.modalRenderer = new ModalRenderer(propertiesResolver, variablesResolver);
   }
 
   @Override
   public boolean canRender(TaskFormData formData) {
-    return true; // TODO, YOLO
+    return modalRenderer.canRender(formData);
   }
 
   @Override
@@ -126,7 +129,6 @@ public class ModalTaskRenderer extends AbstractTaskRenderer {
         req.getPayload().getView().getState().getValues();
 
     String taskId = extractTaskId(taskSubmitPattern, req.getPayload().getView().getCallbackId());
-
     FormData formData = processEngine.getFormService().getTaskFormData(taskId);
 
     Map<String, Object> taskVariables = new HashMap<>();
@@ -135,7 +137,8 @@ public class ModalTaskRenderer extends AbstractTaskRenderer {
         .getFormFields()
         .forEach(
             field ->
-                getRenderer(field)
+                modalRenderer
+                    .getRenderer(field)
                     .extractValue(field, viewStateValues.get(field.getId()))
                     .peek(
                         optionalValue ->
@@ -167,54 +170,26 @@ public class ModalTaskRenderer extends AbstractTaskRenderer {
     requireOk(
         () ->
             ctx.client()
-                .viewsOpen(r -> r.triggerId(ctx.getTriggerId()).view(buildModal(task, formData))));
+                .viewsOpen(
+                    r ->
+                        r.triggerId(ctx.getTriggerId())
+                            .view(
+                                modalRenderer.buildModal(
+                                    task, formData, generateSubmitModalActionId(task.getId())))));
 
     return ctx.ack();
   }
 
   public Response updateModal(
       ViewSubmissionContext ctx, TaskDetails followUpTask, TaskFormData formData) {
-    return ctx.ack(r -> r.responseAction("update").view(buildModal(followUpTask, formData)));
-  }
-
-  private View buildModal(TaskDetails task, FormData formData) {
-    String titleValue = getProperty(task, PROPERTY_SLACK_TITLE).orElse(task.getName());
-
-    List<LayoutBlock> blocks = new ArrayList<>();
-
-    blocks.addAll(getDescriptionBlocks(task));
-    blocks.addAll(getVariablesBlocks(task));
-
-    blocks.addAll(
-        formData.getFormFields().stream()
-            .map(field -> getRenderer(field).render(field))
-            .collect(Collectors.toList()));
-
-    return view(
-        view ->
-            view.callbackId(generateSubmitModalActionId(task.getId()))
-                .type("modal")
-                .notifyOnClose(false)
-                .title(viewTitle(title -> title.type("plain_text").text(titleValue).emoji(true)))
-                .submit(viewSubmit(submit -> submit.type("plain_text").text("Submit").emoji(true)))
-                .close(viewClose(close -> close.type("plain_text").text("Cancel").emoji(true)))
-                .blocks(blocks));
-  }
-
-  private FieldRenderer getRenderer(FormField field) {
-    if (field.getType() instanceof StringFormType) {
-      return new StringFieldRenderer(field);
-    } else if (field.getType() instanceof EnumFormType) {
-      return new EnumFieldRenderer(field);
-    } else if (field.getType() instanceof BooleanFormType) {
-      return new BooleanFieldRenderer(field);
-    } else if (field.getType() instanceof LongFormType) {
-      return new LongFieldRenderer(field);
-    } else if (field.getType() instanceof DateFormType) {
-      return new DateFieldRenderer(field);
-    } else {
-      throw new RuntimeException("Missing implementation for field type " + field.getType());
-    }
+    return ctx.ack(
+        r ->
+            r.responseAction("update")
+                .view(
+                    modalRenderer.buildModal(
+                        followUpTask,
+                        formData,
+                        generateSubmitModalActionId(followUpTask.getId()))));
   }
 
   public String extractTaskId(Pattern pattern, String identifier) {
@@ -224,5 +199,10 @@ public class ModalTaskRenderer extends AbstractTaskRenderer {
     } else {
       throw new IllegalArgumentException("Invalid action id.");
     }
+  }
+
+  protected TaskDetails getTaskById(String taskId) {
+    Task task = processEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
+    return TaskDetails.of(task);
   }
 }

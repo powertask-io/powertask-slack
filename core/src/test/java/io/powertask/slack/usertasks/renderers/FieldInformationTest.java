@@ -16,6 +16,7 @@ package io.powertask.slack.usertasks.renderers;
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.powertask.slack.FieldInformation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;

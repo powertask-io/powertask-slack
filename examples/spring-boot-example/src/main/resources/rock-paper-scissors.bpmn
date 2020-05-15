@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1layxzv" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.7.2">
+  <bpmn:process id="Process_18txf7v" name="Rock Paper Scissors" isExecutable="true" camunda:candidateStarterUsers="erik@eamelink.net">
+    <bpmn:extensionElements>
+      <camunda:properties>
+        <camunda:property name="slack-description" value="Play the infamous game. Pick your opponent, choose your weapon and fight for glory!" />
+      </camunda:properties>
+    </bpmn:extensionElements>
+    <bpmn:startEvent id="StartEvent_1" name="Rock Paper Scissors" camunda:initiator="challenger">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="opponent" label="Who do you want to play?" type="string" />
+        </camunda:formData>
+        <camunda:properties>
+          <camunda:property name="slack-description" value="This is the description of the start event." />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_12uum0m</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_1awwfyd" name="Decide Winner" camunda:delegateExpression="${rockPaperScissors.decide()}">
+      <bpmn:incoming>Flow_14ualcc</bpmn:incoming>
+      <bpmn:outgoing>Flow_1owfn89</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="Activity_1u6quil" name="Announce Winner" camunda:delegateExpression="${rockPaperScissors.announce()}">
+      <bpmn:incoming>Flow_1owfn89</bpmn:incoming>
+      <bpmn:outgoing>Flow_1idk3yx</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_1etr413">
+      <bpmn:incoming>Flow_1idk3yx</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_16yuhg7" sourceRef="Gateway_19jb0p1" targetRef="Activity_0yip9zc" />
+    <bpmn:sequenceFlow id="Flow_0vdzjyb" sourceRef="Gateway_19jb0p1" targetRef="Activity_189mw0m" />
+    <bpmn:parallelGateway id="Gateway_19jb0p1">
+      <bpmn:incoming>Flow_0bm4ca0</bpmn:incoming>
+      <bpmn:outgoing>Flow_16yuhg7</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0vdzjyb</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:parallelGateway id="Gateway_0get22t">
+      <bpmn:incoming>Flow_0007yc2</bpmn:incoming>
+      <bpmn:incoming>Flow_0tdwnnt</bpmn:incoming>
+      <bpmn:outgoing>Flow_14ualcc</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_0007yc2" sourceRef="Activity_0yip9zc" targetRef="Gateway_0get22t" />
+    <bpmn:sequenceFlow id="Flow_0tdwnnt" sourceRef="Activity_189mw0m" targetRef="Gateway_0get22t" />
+    <bpmn:sequenceFlow id="Flow_14ualcc" sourceRef="Gateway_0get22t" targetRef="Activity_1awwfyd" />
+    <bpmn:sequenceFlow id="Flow_1owfn89" sourceRef="Activity_1awwfyd" targetRef="Activity_1u6quil" />
+    <bpmn:sequenceFlow id="Flow_1idk3yx" sourceRef="Activity_1u6quil" targetRef="Event_1etr413" />
+    <bpmn:boundaryEvent id="Event_1i4u10w" name="A draw!" attachedToRef="Activity_1awwfyd">
+      <bpmn:outgoing>Flow_1tuggtj</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_12qf928" camunda:errorMessageVariable="task-error-message" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_1tuggtj" sourceRef="Event_1i4u10w" targetRef="Gateway_1y8urwe" />
+    <bpmn:userTask id="Activity_0yip9zc" name="Challenger Pick Weapon" camunda:assignee="${challenger}">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="challenger-weapon" label="Pick your weapon!" type="enum">
+            <camunda:validation>
+              <camunda:constraint name="required" />
+            </camunda:validation>
+            <camunda:value id="rock" name="Rock" />
+            <camunda:value id="paper" name="Paper" />
+            <camunda:value id="scissors" name="Scissors" />
+          </camunda:formField>
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_16yuhg7</bpmn:incoming>
+      <bpmn:outgoing>Flow_0007yc2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_189mw0m" name="Opponent Pick Weapon" camunda:assignee="${opponent}">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="opponent-weapon" label="What weapon do you choose?" type="enum">
+            <camunda:validation>
+              <camunda:constraint name="required" />
+            </camunda:validation>
+            <camunda:value id="rock" name="Rock" />
+            <camunda:value id="paper" name="Paper" />
+            <camunda:value id="scissors" name="Scissors" />
+          </camunda:formField>
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0vdzjyb</bpmn:incoming>
+      <bpmn:outgoing>Flow_0tdwnnt</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_1y8urwe">
+      <bpmn:incoming>Flow_1tuggtj</bpmn:incoming>
+      <bpmn:incoming>Flow_12uum0m</bpmn:incoming>
+      <bpmn:outgoing>Flow_0bm4ca0</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0bm4ca0" sourceRef="Gateway_1y8urwe" targetRef="Gateway_19jb0p1" />
+    <bpmn:sequenceFlow id="Flow_12uum0m" sourceRef="StartEvent_1" targetRef="Gateway_1y8urwe" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_18txf7v">
+      <bpmndi:BPMNEdge id="Flow_16yuhg7_di" bpmnElement="Flow_16yuhg7">
+        <di:waypoint x="340" y="152" />
+        <di:waypoint x="340" y="120" />
+        <di:waypoint x="420" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0vdzjyb_di" bpmnElement="Flow_0vdzjyb">
+        <di:waypoint x="340" y="202" />
+        <di:waypoint x="340" y="230" />
+        <di:waypoint x="420" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0007yc2_di" bpmnElement="Flow_0007yc2">
+        <di:waypoint x="520" y="120" />
+        <di:waypoint x="580" y="120" />
+        <di:waypoint x="580" y="152" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0tdwnnt_di" bpmnElement="Flow_0tdwnnt">
+        <di:waypoint x="520" y="230" />
+        <di:waypoint x="580" y="230" />
+        <di:waypoint x="580" y="202" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14ualcc_di" bpmnElement="Flow_14ualcc">
+        <di:waypoint x="605" y="177" />
+        <di:waypoint x="640" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1owfn89_di" bpmnElement="Flow_1owfn89">
+        <di:waypoint x="740" y="177" />
+        <di:waypoint x="780" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1idk3yx_di" bpmnElement="Flow_1idk3yx">
+        <di:waypoint x="880" y="177" />
+        <di:waypoint x="912" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1tuggtj_di" bpmnElement="Flow_1tuggtj">
+        <di:waypoint x="690" y="235" />
+        <di:waypoint x="690" y="290" />
+        <di:waypoint x="250" y="290" />
+        <di:waypoint x="250" y="202" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0bm4ca0_di" bpmnElement="Flow_0bm4ca0">
+        <di:waypoint x="275" y="177" />
+        <di:waypoint x="315" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12uum0m_di" bpmnElement="Flow_12uum0m">
+        <di:waypoint x="188" y="177" />
+        <di:waypoint x="225" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="152" y="159" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="141" y="202" width="58" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1m2zfl5_di" bpmnElement="Gateway_19jb0p1">
+        <dc:Bounds x="315" y="152" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0husylw_di" bpmnElement="Gateway_0get22t">
+        <dc:Bounds x="555" y="152" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0bz5bb6_di" bpmnElement="Activity_0yip9zc">
+        <dc:Bounds x="420" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1dsi7re_di" bpmnElement="Activity_189mw0m">
+        <dc:Bounds x="420" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0yys0da_di" bpmnElement="Activity_1awwfyd">
+        <dc:Bounds x="640" y="137" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0hrv6lq_di" bpmnElement="Activity_1u6quil">
+        <dc:Bounds x="780" y="137" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1etr413_di" bpmnElement="Event_1etr413">
+        <dc:Bounds x="912" y="159" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1y8urwe_di" bpmnElement="Gateway_1y8urwe" isMarkerVisible="true">
+        <dc:Bounds x="225" y="152" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0gfktgm_di" bpmnElement="Event_1i4u10w">
+        <dc:Bounds x="672" y="199" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="701" y="253" width="38" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

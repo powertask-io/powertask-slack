@@ -11,33 +11,33 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.powertask.slack.usertasks.renderers.fieldrenderers;
+package io.powertask.slack.modals.renderers.fieldrenderers;
 
-import static com.slack.api.model.block.composition.BlockCompositions.option;
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.slack.api.model.block.element.BlockElement;
-import com.slack.api.model.block.element.RadioButtonsElement;
+import com.slack.api.model.block.element.DatePickerElement;
 import com.slack.api.model.view.ViewState;
 import com.slack.api.model.view.ViewState.SelectedOption;
 import io.vavr.control.Either;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.camunda.bpm.engine.impl.form.FormFieldImpl;
-import org.camunda.bpm.engine.impl.form.type.BooleanFormType;
+import org.camunda.bpm.engine.impl.form.type.DateFormType;
 import org.camunda.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl;
 import org.junit.jupiter.api.Test;
 
-class BooleanFieldRendererTest {
+class DateFieldRendererTest {
+
+  static String camundaDatePattern = "dd/MM/yyyy";
 
   private FormFieldImpl getBaseField(String id) {
     FormFieldImpl formField = new FormFieldImpl();
-    formField.setType(new BooleanFormType());
-    formField.setValue(new PrimitiveTypeValueImpl.BooleanValueImpl(null));
+    formField.setType(new DateFormType(camundaDatePattern));
+    formField.setValue(new PrimitiveTypeValueImpl.DateValueImpl(null));
     formField.setId(id);
     return formField;
   }
@@ -48,14 +48,10 @@ class BooleanFieldRendererTest {
 
     FormFieldImpl formField = getBaseField(id);
 
-    BlockElement renderedElement = new BooleanFieldRenderer(formField).renderElement();
+    BlockElement renderedElement = new DateFieldRenderer(formField).renderElement();
 
     BlockElement expectedElement =
-        RadioButtonsElement.builder()
-            .actionId("1234_boolean")
-            .options(
-                Arrays.asList(option(plainText("Yes"), "true"), option(plainText("No"), "false")))
-            .build();
+        DatePickerElement.builder().actionId(formField.getId() + "_date").build();
 
     assertEquals(expectedElement, renderedElement);
   }
@@ -63,25 +59,24 @@ class BooleanFieldRendererTest {
   @Test
   void renderFullOptionsElement() {
     String id = "1234";
-    Boolean value = true;
+    String camundaDatePattern = "dd/MM/yyyy";
+    String placeholder = "placeholder";
+    String initialDate = "21/03/2010";
 
     FormFieldImpl formField = getBaseField(id);
-
-    formField.setValue(new PrimitiveTypeValueImpl.BooleanValueImpl(value));
+    formField.setValue(new PrimitiveTypeValueImpl.StringValueImpl(initialDate));
 
     Map<String, String> properties = new HashMap<>();
-    properties.put("slack-true-label", "Yep");
-    properties.put("slack-false-label", "Nope");
+    properties.put("slack-placeholder", placeholder);
     formField.setProperties(properties);
 
-    BlockElement renderedElement = new BooleanFieldRenderer(formField).renderElement();
+    BlockElement renderedElement = new DateFieldRenderer(formField).renderElement();
 
     BlockElement expectedElement =
-        RadioButtonsElement.builder()
-            .actionId("1234_boolean")
-            .initialOption(option(plainText("Yep"), "true"))
-            .options(
-                Arrays.asList(option(plainText("Yep"), "true"), option(plainText("Nope"), "false")))
+        DatePickerElement.builder()
+            .actionId(formField.getId() + "_date")
+            .placeholder(plainText(placeholder))
+            .initialDate("2010-03-21") // Note the difference in format from Camunda.
             .build();
 
     assertEquals(expectedElement, renderedElement);
@@ -96,12 +91,12 @@ class BooleanFieldRendererTest {
     selectedOption.setValue("true");
 
     ViewState.Value value = new ViewState.Value();
-    value.setSelectedOption(selectedOption);
+    value.setSelectedDate("2010-03-15");
 
-    Map<String, ViewState.Value> fields = Collections.singletonMap("1234_boolean", value);
+    Map<String, ViewState.Value> fields = Collections.singletonMap("1234_date", value);
 
     assertEquals(
-        Either.right(Optional.of("true")),
-        new BooleanFieldRenderer(formField).extractValue(formField, fields));
+        Either.right(Optional.of("15/03/2010")),
+        new DateFieldRenderer(formField).extractValue(formField, fields));
   }
 }

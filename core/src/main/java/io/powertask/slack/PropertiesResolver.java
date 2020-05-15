@@ -11,16 +11,11 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.powertask.slack.spring;
+package io.powertask.slack;
 
-public class ConfigurationKeys {
-  // TODO, rename this.
-  public static final String POWERTASK_SERVICETASKS_SLACKSERVICE_ENABLED =
-      "powertask.servicetasks.slackservice.enabled";
-  public static final String POWERTASK_ENGINE_USERRESOLVER_USER_ID_TYPE =
-      "powertask.engine.userresolver.user-id-type";
-  public static final String POWERTASK_APP_HOME_ENABLED = "powertask.slack.app-home.enabled";
+import java.util.Map;
+import java.util.Optional;
 
-  public static final String SLACK_BOLT = "slack.bolt";
-  public static final String SLACK = "slack";
+public interface PropertiesResolver<T> {
+  Map<String, Optional<String>> getProperties(T t);
 }

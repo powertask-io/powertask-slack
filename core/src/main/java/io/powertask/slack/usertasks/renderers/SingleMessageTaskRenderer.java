@@ -18,7 +18,7 @@ import static com.slack.api.model.block.composition.BlockCompositions.markdownTe
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 import static com.slack.api.model.block.element.BlockElements.asElements;
 import static com.slack.api.model.block.element.BlockElements.button;
-import static io.powertask.slack.usertasks.renderers.fieldrenderers.AbstractFieldRenderer.PROPERTY_SLACK_HINT;
+import static io.powertask.slack.modals.renderers.fieldrenderers.AbstractFieldRenderer.PROPERTY_SLACK_HINT;
 
 import com.slack.api.RequestConfigurator;
 import com.slack.api.app_backend.interactive_components.payload.BlockActionPayload;
@@ -28,9 +28,13 @@ import com.slack.api.bolt.request.builtin.BlockActionRequest;
 import com.slack.api.bolt.response.Response;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
 import com.slack.api.model.block.LayoutBlock;
+import io.powertask.slack.CamundaPropertiesResolver;
+import io.powertask.slack.FieldInformation;
+import io.powertask.slack.FormLikePropertiesBase;
+import io.powertask.slack.modals.renderers.fieldrenderers.AbstractFieldRenderer;
+import io.powertask.slack.modals.renderers.fieldrenderers.BooleanFieldRenderer;
 import io.powertask.slack.usertasks.TaskDetails;
-import io.powertask.slack.usertasks.renderers.fieldrenderers.AbstractFieldRenderer;
-import io.powertask.slack.usertasks.renderers.fieldrenderers.BooleanFieldRenderer;
+import io.powertask.slack.usertasks.TaskVariablesResolver;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,14 +49,19 @@ import org.camunda.bpm.engine.form.FormField;
 import org.camunda.bpm.engine.form.TaskFormData;
 import org.camunda.bpm.engine.impl.form.type.BooleanFormType;
 
-public class SingleMessageTaskRenderer extends AbstractTaskRenderer {
+public class SingleMessageTaskRenderer extends FormLikePropertiesBase<TaskDetails>
+    implements TaskRenderer {
 
   private static final Pattern taskIdPattern =
       Pattern.compile("^single-message-task/([a-z0-9\\-]+)/[0-9]+$");
+  protected final BiFunction<TaskResult, Context, Response> submissionListener;
 
   public SingleMessageTaskRenderer(
       BiFunction<TaskResult, Context, Response> submissionListener, ProcessEngine processEngine) {
-    super(processEngine, submissionListener);
+    super(
+        new CamundaPropertiesResolver<>(processEngine.getRepositoryService()),
+        new TaskVariablesResolver(processEngine.getTaskService()));
+    this.submissionListener = submissionListener;
   }
 
   @Override

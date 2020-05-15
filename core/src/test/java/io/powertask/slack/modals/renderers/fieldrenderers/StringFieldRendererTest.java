@@ -11,35 +11,32 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.powertask.slack.usertasks.renderers.fieldrenderers;
+package io.powertask.slack.modals.renderers.fieldrenderers;
 
-import static com.slack.api.model.block.composition.BlockCompositions.option;
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.slack.api.model.block.element.BlockElement;
-import com.slack.api.model.block.element.RadioButtonsElement;
+import com.slack.api.model.block.element.PlainTextInputElement;
 import com.slack.api.model.view.ViewState;
-import com.slack.api.model.view.ViewState.SelectedOption;
 import io.vavr.control.Either;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.camunda.bpm.engine.form.FormFieldValidationConstraint;
 import org.camunda.bpm.engine.impl.form.FormFieldImpl;
-import org.camunda.bpm.engine.impl.form.type.EnumFormType;
+import org.camunda.bpm.engine.impl.form.FormFieldValidationConstraintImpl;
+import org.camunda.bpm.engine.impl.form.type.StringFormType;
 import org.camunda.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl;
 import org.junit.jupiter.api.Test;
 
-class EnumFieldRendererTest {
+class StringFieldRendererTest {
 
   private FormFieldImpl getBaseField(String id) {
     FormFieldImpl formField = new FormFieldImpl();
-    Map<String, String> values = new HashMap<>();
-    values.put("one", "One");
-    values.put("two", "Two");
-    formField.setType(new EnumFormType(values));
+    formField.setType(new StringFormType());
     formField.setValue(new PrimitiveTypeValueImpl.StringValueImpl(null));
     formField.setId(id);
     return formField;
@@ -51,14 +48,12 @@ class EnumFieldRendererTest {
 
     FormFieldImpl formField = getBaseField(id);
 
-    BlockElement renderedElement = new EnumFieldRenderer(formField).renderElement();
+    BlockElement renderedElement =
+        new io.powertask.slack.modals.renderers.fieldrenderers.StringFieldRenderer(formField)
+            .renderElement();
 
     BlockElement expectedElement =
-        RadioButtonsElement.builder()
-            .actionId("1234_enum")
-            .options(
-                Arrays.asList(option(plainText("One"), "one"), option(plainText("Two"), "two")))
-            .build();
+        PlainTextInputElement.builder().multiline(false).actionId(id + "_text").build();
 
     assertEquals(expectedElement, renderedElement);
   }
@@ -66,18 +61,32 @@ class EnumFieldRendererTest {
   @Test
   void renderFullOptionsElement() {
     String id = "1234";
+    String value = "the-value";
+    String placeholder = "Fill it out...";
 
     FormFieldImpl formField = getBaseField(id);
-    formField.setValue(new PrimitiveTypeValueImpl.StringValueImpl("two"));
+    formField.setValue(new PrimitiveTypeValueImpl.StringValueImpl(value));
 
-    BlockElement renderedElement = new EnumFieldRenderer(formField).renderElement();
+    Map<String, String> properties = new HashMap<>();
+    properties.put("slack-multiline", "true");
+    properties.put("slack-placeholder", placeholder);
+    formField.setProperties(properties);
+
+    ArrayList<FormFieldValidationConstraint> constraints = new ArrayList<>();
+    constraints.add(new FormFieldValidationConstraintImpl("minlength", "10"));
+    constraints.add(new FormFieldValidationConstraintImpl("maxlength", "30"));
+    formField.setValidationConstraints(constraints);
+
+    BlockElement renderedElement = new StringFieldRenderer(formField).renderElement();
 
     BlockElement expectedElement =
-        RadioButtonsElement.builder()
-            .actionId("1234_enum")
-            .initialOption(option(plainText("Two"), "two"))
-            .options(
-                Arrays.asList(option(plainText("One"), "one"), option(plainText("Two"), "two")))
+        PlainTextInputElement.builder()
+            .initialValue(value)
+            .multiline(true)
+            .minLength(10)
+            .maxLength(30)
+            .placeholder(plainText(placeholder))
+            .actionId(id + "_text")
             .build();
 
     assertEquals(expectedElement, renderedElement);
@@ -88,16 +97,13 @@ class EnumFieldRendererTest {
     String id = "1234";
     FormFieldImpl formField = getBaseField(id);
 
-    SelectedOption selectedOption = new SelectedOption();
-    selectedOption.setValue("two");
-
     ViewState.Value value = new ViewState.Value();
-    value.setSelectedOption(selectedOption);
+    value.setValue("Hello, there!");
 
-    Map<String, ViewState.Value> fields = Collections.singletonMap("1234_enum", value);
+    Map<String, ViewState.Value> fields = Collections.singletonMap("1234_text", value);
 
     assertEquals(
-        Either.right(Optional.of("two")),
-        new EnumFieldRenderer(formField).extractValue(formField, fields));
+        Either.right(Optional.of("Hello, there!")),
+        new StringFieldRenderer(formField).extractValue(formField, fields));
   }
 }

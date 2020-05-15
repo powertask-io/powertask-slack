@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_0sccty6" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.7.2">
-  <bpmn:process id="movie-review-process" name="Review Movie" isExecutable="true">
-    <bpmn:startEvent id="start" name="Start">
-      <bpmn:outgoing>Flow_1jv9p0q</bpmn:outgoing>
-    </bpmn:startEvent>
+  <bpmn:process id="movie-review-process" name="Review Movie" isExecutable="true" camunda:candidateStarterUsers="erik@eamelink.net">
     <bpmn:userTask id="basic-review" name="Basic Review" camunda:assignee="${email}">
       <bpmn:extensionElements>
         <camunda:formData>
@@ -74,6 +71,9 @@
       <bpmn:incoming>Flow_1ijpwsa</bpmn:incoming>
       <bpmn:outgoing>Flow_1nabk71</bpmn:outgoing>
     </bpmn:userTask>
+    <bpmn:startEvent id="start" name="Start" camunda:initiator="email">
+      <bpmn:outgoing>Flow_1jv9p0q</bpmn:outgoing>
+    </bpmn:startEvent>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="movie-review-process">
@@ -105,12 +105,6 @@
         <di:waypoint x="320" y="197" />
         <di:waypoint x="375" y="197" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="start">
-        <dc:Bounds x="152" y="179" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="158" y="222" width="24" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_153a1fi_di" bpmnElement="basic-review">
         <dc:Bounds x="220" y="157" width="100" height="80" />
       </bpmndi:BPMNShape>
@@ -134,6 +128,12 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0mybx85_di" bpmnElement="elaborate-review">
         <dc:Bounds x="490" y="220" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_11isftp_di" bpmnElement="start">
+        <dc:Bounds x="152" y="179" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="158" y="222" width="24" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
