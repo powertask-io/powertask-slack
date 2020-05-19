@@ -11,16 +11,19 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.powertask.slack.spring;
+package io.powertask.slack.modals.renderers.fieldrenderers;
 
-public class ConfigurationKeys {
-  // TODO, rename this.
-  public static final String POWERTASK_SERVICETASKS_SLACKSERVICE_ENABLED =
-      "powertask.servicetasks.slackservice.enabled";
-  public static final String POWERTASK_ENGINE_USERRESOLVER_USER_ID_TYPE =
-      "powertask.engine.userresolver.user-id-type";
-  public static final String POWERTASK_APP_HOME_ENABLED = "powertask.slack.app-home.enabled";
+import com.slack.api.model.block.InputBlock;
+import com.slack.api.model.view.ViewState;
+import io.vavr.control.Either;
+import java.util.Map;
+import java.util.Optional;
+import org.camunda.bpm.engine.form.FormField;
 
-  public static final String SLACK_BOLT = "slack.bolt";
-  public static final String SLACK = "slack";
+public interface FieldRenderer {
+
+  InputBlock render(FormField formField);
+
+  Either<String, Optional<Object>> extractValue(
+      FormField formField, Map<String, ViewState.Value> viewState);
 }

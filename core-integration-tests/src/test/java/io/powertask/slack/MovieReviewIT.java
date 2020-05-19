@@ -54,6 +54,10 @@ public class MovieReviewIT extends AbstractIntegrationTest {
 
     Map<String, String> substitutions = new HashMap<>();
     substitutions.put("$.actions[0].action_id", "modal-task-open/" + task.getId());
+
+    // Wait for the async work after notification of a new task is completed.
+    Thread.sleep(100);
+
     slackInteraction("block-action.http", substitutions);
     Thread.sleep(100);
 

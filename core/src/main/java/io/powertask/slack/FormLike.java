@@ -11,19 +11,17 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.powertask.slack.usertasks.renderers.fieldrenderers;
+package io.powertask.slack;
 
-import com.slack.api.model.block.InputBlock;
-import com.slack.api.model.view.ViewState;
-import io.vavr.control.Either;
-import java.util.Map;
-import java.util.Optional;
-import org.camunda.bpm.engine.form.FormField;
+/**
+ * Things that can be rendered as a form, such as a Camunda User Task, or a Process with a start
+ * element that has a form.
+ */
+// TODO, this is a poor abstraction. These things don't necessarily represent forms.
+public interface FormLike {
+  String getName();
 
-public interface FieldRenderer {
+  String getProcessDefinitionId();
 
-  InputBlock render(FormField formField);
-
-  Either<String, Optional<Object>> extractValue(
-      FormField formField, Map<String, ViewState.Value> viewState);
+  String getProcessDefinitionElementId();
 }

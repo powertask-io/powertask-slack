@@ -11,7 +11,7 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.powertask.slack.usertasks.renderers.fieldrenderers;
+package io.powertask.slack.modals.renderers.fieldrenderers;
 
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 
@@ -19,7 +19,7 @@ import com.slack.api.model.block.composition.OptionObject;
 import com.slack.api.model.block.element.BlockElement;
 import com.slack.api.model.block.element.RadioButtonsElement;
 import com.slack.api.model.view.ViewState;
-import io.powertask.slack.usertasks.renderers.FieldInformation;
+import io.powertask.slack.FieldInformation;
 import io.vavr.control.Either;
 import java.util.List;
 import java.util.Map;

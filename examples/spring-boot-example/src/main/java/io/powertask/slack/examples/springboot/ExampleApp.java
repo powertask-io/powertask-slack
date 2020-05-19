@@ -13,7 +13,6 @@
  */
 package io.powertask.slack.examples.springboot;
 
-import java.util.Collections;
 import org.camunda.bpm.engine.ProcessEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +42,9 @@ public class ExampleApp implements CommandLineRunner {
   public void run(String... args) {
     // Trigger a process :)
     logger.info("Triggering the movie-review process for Slack user with email:" + email);
-    processEngine
-        .getRuntimeService()
-        .startProcessInstanceByKey(
-            "movie-review-process", Collections.singletonMap("email", email));
+    // processEngine
+    //    .getRuntimeService()
+    //    .startProcessInstanceByKey(
+    //        "movie-review-process", Collections.singletonMap("email", email));
   }
 }

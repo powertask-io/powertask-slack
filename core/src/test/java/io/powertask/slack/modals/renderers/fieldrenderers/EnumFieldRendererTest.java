@@ -11,33 +11,36 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.powertask.slack.usertasks.renderers.fieldrenderers;
+package io.powertask.slack.modals.renderers.fieldrenderers;
 
+import static com.slack.api.model.block.composition.BlockCompositions.option;
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.slack.api.model.block.element.BlockElement;
-import com.slack.api.model.block.element.DatePickerElement;
+import com.slack.api.model.block.element.RadioButtonsElement;
 import com.slack.api.model.view.ViewState;
 import com.slack.api.model.view.ViewState.SelectedOption;
 import io.vavr.control.Either;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.camunda.bpm.engine.impl.form.FormFieldImpl;
-import org.camunda.bpm.engine.impl.form.type.DateFormType;
+import org.camunda.bpm.engine.impl.form.type.EnumFormType;
 import org.camunda.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl;
 import org.junit.jupiter.api.Test;
 
-class DateFieldRendererTest {
-
-  static String camundaDatePattern = "dd/MM/yyyy";
+class EnumFieldRendererTest {
 
   private FormFieldImpl getBaseField(String id) {
     FormFieldImpl formField = new FormFieldImpl();
-    formField.setType(new DateFormType(camundaDatePattern));
-    formField.setValue(new PrimitiveTypeValueImpl.DateValueImpl(null));
+    Map<String, String> values = new HashMap<>();
+    values.put("one", "One");
+    values.put("two", "Two");
+    formField.setType(new EnumFormType(values));
+    formField.setValue(new PrimitiveTypeValueImpl.StringValueImpl(null));
     formField.setId(id);
     return formField;
   }
@@ -48,10 +51,14 @@ class DateFieldRendererTest {
 
     FormFieldImpl formField = getBaseField(id);
 
-    BlockElement renderedElement = new DateFieldRenderer(formField).renderElement();
+    BlockElement renderedElement = new EnumFieldRenderer(formField).renderElement();
 
     BlockElement expectedElement =
-        DatePickerElement.builder().actionId(formField.getId() + "_date").build();
+        RadioButtonsElement.builder()
+            .actionId("1234_enum")
+            .options(
+                Arrays.asList(option(plainText("One"), "one"), option(plainText("Two"), "two")))
+            .build();
 
     assertEquals(expectedElement, renderedElement);
   }
@@ -59,24 +66,18 @@ class DateFieldRendererTest {
   @Test
   void renderFullOptionsElement() {
     String id = "1234";
-    String camundaDatePattern = "dd/MM/yyyy";
-    String placeholder = "placeholder";
-    String initialDate = "21/03/2010";
 
     FormFieldImpl formField = getBaseField(id);
-    formField.setValue(new PrimitiveTypeValueImpl.StringValueImpl(initialDate));
+    formField.setValue(new PrimitiveTypeValueImpl.StringValueImpl("two"));
 
-    Map<String, String> properties = new HashMap<>();
-    properties.put("slack-placeholder", placeholder);
-    formField.setProperties(properties);
-
-    BlockElement renderedElement = new DateFieldRenderer(formField).renderElement();
+    BlockElement renderedElement = new EnumFieldRenderer(formField).renderElement();
 
     BlockElement expectedElement =
-        DatePickerElement.builder()
-            .actionId(formField.getId() + "_date")
-            .placeholder(plainText(placeholder))
-            .initialDate("2010-03-21") // Note the difference in format from Camunda.
+        RadioButtonsElement.builder()
+            .actionId("1234_enum")
+            .initialOption(option(plainText("Two"), "two"))
+            .options(
+                Arrays.asList(option(plainText("One"), "one"), option(plainText("Two"), "two")))
             .build();
 
     assertEquals(expectedElement, renderedElement);
@@ -88,15 +89,15 @@ class DateFieldRendererTest {
     FormFieldImpl formField = getBaseField(id);
 
     SelectedOption selectedOption = new SelectedOption();
-    selectedOption.setValue("true");
+    selectedOption.setValue("two");
 
     ViewState.Value value = new ViewState.Value();
-    value.setSelectedDate("2010-03-15");
+    value.setSelectedOption(selectedOption);
 
-    Map<String, ViewState.Value> fields = Collections.singletonMap("1234_date", value);
+    Map<String, ViewState.Value> fields = Collections.singletonMap("1234_enum", value);
 
     assertEquals(
-        Either.right(Optional.of("15/03/2010")),
-        new DateFieldRenderer(formField).extractValue(formField, fields));
+        Either.right(Optional.of("two")),
+        new EnumFieldRenderer(formField).extractValue(formField, fields));
   }
 }

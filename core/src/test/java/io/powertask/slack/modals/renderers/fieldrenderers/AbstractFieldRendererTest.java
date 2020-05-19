@@ -11,7 +11,7 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.powertask.slack.usertasks.renderers.fieldrenderers;
+package io.powertask.slack.modals.renderers.fieldrenderers;
 
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 import static org.junit.jupiter.api.Assertions.assertEquals;
