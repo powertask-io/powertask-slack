@@ -23,6 +23,4 @@ public interface TaskLike {
   Optional<String> description();
 
   String processDefinitionId();
-
-  String getProcessDefinitionElementId();
 }

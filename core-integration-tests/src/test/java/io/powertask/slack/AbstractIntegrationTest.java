@@ -28,7 +28,6 @@ import com.slack.api.bolt.App;
 import com.slack.api.bolt.AppConfig;
 import com.slack.api.bolt.request.Request;
 import com.slack.api.bolt.request.RequestHeaders;
-import com.slack.api.bolt.response.Response;
 import com.slack.api.bolt.util.SlackRequestParser;
 import com.slack.api.bolt.util.SlackRequestParser.HttpRequest;
 import com.slack.api.methods.AsyncMethodsClient;
@@ -78,7 +77,7 @@ public abstract class AbstractIntegrationTest {
   protected WireMockServer wireMockServer;
   protected App app;
   protected SlackRequestParser requestParser;
-  protected Map<Object, Object> beans = new HashMap<>();
+  protected final Map<Object, Object> beans = new HashMap<>();
 
   protected AbstractIntegrationTest(String wiremockFiles) {
     this.wiremockFiles = wiremockFiles;
@@ -140,19 +139,18 @@ public abstract class AbstractIntegrationTest {
     powertaskListener = new UserTaskDispatcherListener(taskMapper, userTaskDispatcher);
   }
 
-  // TODO, ugly cyclic dep :'(
   private void addTaskDispatcherToProcessEngine() {
     beans.put("powertaskListener", powertaskListener);
   }
 
-  protected Response slackInteraction(String name, Map<String, String> variables) {
+  protected void slackInteraction(String name, Map<String, String> variables) {
     try (InputStream is =
         getClass().getClassLoader().getResourceAsStream(wiremockFiles + "/incoming/" + name)) {
       RawHttpRequest request = new RawHttp().parseRequest(is).eagerly();
       RawHttpRequest updated = replaceBodyVariables(request, variables);
       RawHttpRequest resigned = resign(updated);
       Request<?> req = requestParser.parse(toSlackHttpRequest(resigned));
-      return app.run(req);
+      app.run(req);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

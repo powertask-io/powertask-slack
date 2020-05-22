@@ -24,7 +24,7 @@ public class RockPaperScissors {
 
   private final SlackService slackService;
 
-  String DRAW_ERROR = "DRAW_ERROR";
+  private final String DRAW_ERROR = "DRAW_ERROR";
 
   public RockPaperScissors(SlackService slackService) {
     this.slackService = slackService;
