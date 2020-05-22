@@ -35,8 +35,6 @@ public class BooleanFieldRenderer extends AbstractFieldRenderer<Boolean> {
   private final BooleanField booleanField;
 
   private static final String FIELD_SUFFIX = "_boolean";
-  public static final String PROPERTY_SLACK_TRUE_LABEL = "slack-true-label";
-  public static final String PROPERTY_SLACK_FALSE_LABEL = "slack-false-label";
 
   public BooleanFieldRenderer(BooleanField formField) {
     super(formField);

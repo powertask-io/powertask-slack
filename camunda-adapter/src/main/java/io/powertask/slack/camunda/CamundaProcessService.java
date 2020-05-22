@@ -81,8 +81,10 @@ public class CamundaProcessService implements ProcessService {
   }
 
   @Override
-  public void startProcessWithForm(String processDefinitionId) {
-    processEngine.getRuntimeService().startProcessInstanceById(processDefinitionId);
+  public void startProcess(String processDefinitionId, Map<String, Object> processVariables) {
+    processEngine
+        .getRuntimeService()
+        .startProcessInstanceById(processDefinitionId, processVariables);
   }
 
   @Override

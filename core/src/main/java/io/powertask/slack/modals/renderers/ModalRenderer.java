@@ -20,6 +20,7 @@ import static com.slack.api.model.view.Views.viewTitle;
 
 import com.slack.api.model.block.LayoutBlock;
 import com.slack.api.model.view.View;
+import com.slack.api.model.view.ViewState;
 import io.powertask.slack.Form;
 import io.powertask.slack.FormField;
 import io.powertask.slack.TaskLike;
@@ -32,8 +33,11 @@ import io.powertask.slack.formfields.StringField;
 import io.powertask.slack.modals.renderers.fieldrenderers.*;
 import io.powertask.slack.usertasks.Task;
 import io.powertask.slack.usertasks.renderers.MessageComponents;
+import io.vavr.control.Either;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ModalRenderer {
@@ -90,6 +94,27 @@ public class ModalRenderer {
       return new DateFieldRenderer((DateField) field);
     } else {
       throw new RuntimeException("Missing implementation for field type " + field.getClass());
+    }
+  }
+
+  public Either<Map<String, String>, Map<String, Object>> extractVariables(
+      Form formData, ViewState state) {
+    Map<String, Object> taskVariables = new HashMap<>();
+    Map<String, String> errors = new HashMap<>();
+    formData
+        .fields()
+        .forEach(
+            field ->
+                getRenderer(field)
+                    .extractValue(state.getValues().get(field.id()))
+                    .peek(
+                        optionalValue ->
+                            optionalValue.ifPresent(value -> taskVariables.put(field.id(), value)))
+                    .peekLeft(error -> errors.put(field.id(), error)));
+    if (!errors.isEmpty()) {
+      return Either.left(errors);
+    } else {
+      return Either.right(taskVariables);
     }
   }
 }

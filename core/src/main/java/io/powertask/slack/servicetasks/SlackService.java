@@ -23,12 +23,8 @@ import io.powertask.slack.ImmutableMessageRef;
 import io.powertask.slack.MessageRef;
 import io.powertask.slack.identity.UserResolver;
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SlackService {
-
-  private static final Logger logger = LoggerFactory.getLogger(SlackService.class);
 
   private final MethodsClient methodsClient;
   private final UserResolver userResolver;

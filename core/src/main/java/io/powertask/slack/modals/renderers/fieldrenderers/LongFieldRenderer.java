@@ -21,16 +21,11 @@ import io.powertask.slack.formfields.LongField;
 import io.vavr.control.Either;
 import java.util.Map;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LongFieldRenderer extends AbstractFieldRenderer<Long> {
-  private static final Logger logger = LoggerFactory.getLogger(LongFieldRenderer.class);
 
   private static final String FIELD_SUFFIX = "_long";
-  private static final String CONSTRAINT_MIN = "min";
-  // Be aware! In the Camunda Task List, this is an exclusive constraint. We mimic that.
-  private static final String CONSTRAINT_MAX = "max";
+
   private final LongField longField;
 
   public LongFieldRenderer(LongField formField) {

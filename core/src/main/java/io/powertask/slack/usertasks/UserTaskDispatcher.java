@@ -106,32 +106,39 @@ public class UserTaskDispatcher {
         });
   }
 
-  protected Optional<Task> getFollowUpTask(Task task) {
-    return taskService.followUpTask(task);
-  }
-
   private Response submitAndShowNextTask(TaskRenderer.TaskResult taskResult, Context ctx) {
     Task task = taskService.taskById(taskResult.taskId());
-
     formService.submitTaskForm(taskResult.taskId(), taskResult.taskVariables());
-
-    return getFollowUpTask(task)
+    return taskService
+        .followUpTask(task)
         .map(
-            followUpTask -> {
-              Form form = formService.taskForm(followUpTask.id()).get(); // TODO
-              if (modalTaskRenderer.canRender(form)) {
-                if (ctx instanceof ActionContext) {
-                  return modalTaskRenderer.openModal((ActionContext) ctx, followUpTask, form);
-                } else if (ctx instanceof ViewSubmissionContext) {
-                  return modalTaskRenderer.updateModal(
-                      (ViewSubmissionContext) ctx, followUpTask, form);
-                } else {
-                  throw new RuntimeException("Unknown Context!");
-                }
-              } else {
-                return ctx.ack();
-              }
-            })
+            followUpTask ->
+                formService
+                    .taskForm(followUpTask.id())
+                    .map(
+                        form -> {
+                          if (modalTaskRenderer.canRender(form)) {
+                            if (ctx instanceof ActionContext) {
+                              return modalTaskRenderer.openModal(
+                                  (ActionContext) ctx, followUpTask, form);
+                            } else if (ctx instanceof ViewSubmissionContext) {
+                              return modalTaskRenderer.updateModal(
+                                  (ViewSubmissionContext) ctx, followUpTask, form);
+                            } else {
+                              throw new RuntimeException("Unknown Context!");
+                            }
+                          } else {
+                            return ctx.ack();
+                          }
+                        })
+                    .orElseGet(
+                        () -> {
+                          logger.warn(
+                              "Found a followup task"
+                                  + followUpTask.id()
+                                  + " but it doesn't have a form.");
+                          return ctx.ack();
+                        }))
         .orElseGet(ctx::ack);
   }
 
@@ -153,39 +160,56 @@ public class UserTaskDispatcher {
 
     String contextString = "Task *" + task.name() + "* " + timestampString + taskCompletedByString;
 
-    String refsJson =
-        (String)
-            taskService
-                .getVariable(task.id(), VARIABLE_POWERTASK_MESSAGEREFS)
-                .get(); // TODO, check optional
-    List<MessageRef> messageRefs =
-        wrapExceptions(
-            () -> gson.fromJson(refsJson, new TypeToken<List<ImmutableMessageRef>>() {}.getType()));
+    Optional<String> optionalRefsJson =
+        taskService.getVariable(task.id(), VARIABLE_POWERTASK_MESSAGEREFS).map(o -> (String) o);
 
-    messageRefs.forEach(
-        messageRef ->
-            asyncMethodsClient.chatUpdate(
-                req ->
-                    req.ts(messageRef.ts())
-                        .channel(messageRef.channel())
-                        .blocks(
-                            Collections.singletonList(
-                                Blocks.context(
-                                    Collections.singletonList(
-                                        BlockCompositions.markdownText(contextString)))))));
+    optionalRefsJson.ifPresent(
+        refsJson -> {
+          List<MessageRef> messageRefs =
+              wrapExceptions(
+                  () ->
+                      gson.fromJson(
+                          refsJson, new TypeToken<List<ImmutableMessageRef>>() {}.getType()));
+
+          messageRefs.forEach(
+              messageRef ->
+                  asyncMethodsClient.chatUpdate(
+                      req ->
+                          req.ts(messageRef.ts())
+                              .channel(messageRef.channel())
+                              .blocks(
+                                  Collections.singletonList(
+                                      Blocks.context(
+                                          Collections.singletonList(
+                                              BlockCompositions.markdownText(contextString)))))));
+        });
+
+    if (!optionalRefsJson.isPresent()) {
+      logger.warn(
+          "Unexpectedly couldn't find a variable "
+              + VARIABLE_POWERTASK_MESSAGEREFS
+              + " for task "
+              + task.id());
+    }
   }
 
   public void notifyTaskAssignment(Task task) {
 
     // TODO, probably we can optimize this at some point, predetermining this for all tasks in all
     // deployments.
-    Form form = formService.taskForm(task.id()).get(); // TODO
-    Optional<TaskRenderer> selectedRenderer = selectRenderer(form);
+    Optional<Form> formOptional = formService.taskForm(task.id());
+    formOptional.ifPresent(
+        form -> {
+          Optional<TaskRenderer> selectedRenderer = selectRenderer(form);
 
-    selectedRenderer.ifPresent(renderer -> executeRenderer(renderer, task, form));
+          selectedRenderer.ifPresent(renderer -> executeRenderer(renderer, task, form));
+          if (!selectedRenderer.isPresent()) {
+            logger.info("No task renderer found for this type of task!");
+          }
+        });
 
-    if (!selectedRenderer.isPresent()) {
-      logger.info("No task renderer found for this type of task!");
+    if (!formOptional.isPresent()) {
+      logger.warn("No form found for assigned task " + task.id() + ", not notifying the user.");
     }
   }
 
@@ -198,7 +222,7 @@ public class UserTaskDispatcher {
   // announcing to
   // all candidateUsers / candidateGroups and not just the assignee, so when we make that move, this
   // becomes
-  // reasoble again (of course could still use cleanup :))
+  // reasonable again (of course could still use cleanup :))
   private void executeRenderer(TaskRenderer renderer, Task task, Form form) {
     getAssigneeChannels(task)
         .thenAccept(

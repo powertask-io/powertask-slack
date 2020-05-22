@@ -28,13 +28,16 @@ import com.slack.api.bolt.response.Response;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
 import com.slack.api.model.block.ActionsBlock;
 import com.slack.api.model.block.element.ButtonElement;
-import com.slack.api.model.view.ViewState;
 import io.powertask.slack.Form;
 import io.powertask.slack.FormService;
 import io.powertask.slack.TaskService;
 import io.powertask.slack.modals.renderers.ModalRenderer;
 import io.powertask.slack.usertasks.Task;
-import java.util.*;
+import io.vavr.control.Either;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -122,9 +125,6 @@ public class ModalTaskRenderer implements TaskRenderer {
 
   private Response submitHandler(ViewSubmissionRequest req, ViewSubmissionContext ctx) {
 
-    Map<String, Map<String, ViewState.Value>> viewStateValues =
-        req.getPayload().getView().getState().getValues();
-
     String taskId = extractTaskId(taskSubmitPattern, req.getPayload().getView().getCallbackId());
     Form formData =
         formService
@@ -132,30 +132,17 @@ public class ModalTaskRenderer implements TaskRenderer {
             // TODO, make nicer
             .orElseThrow(() -> new RuntimeException("No form for this task!"));
 
-    Map<String, Object> taskVariables = new HashMap<>();
-    Map<String, String> errors = new HashMap<>();
-    formData
-        .fields()
-        .forEach(
-            field ->
-                modalRenderer
-                    .getRenderer(field)
-                    .extractValue(viewStateValues.get(field.id()))
-                    .peek(
-                        optionalValue ->
-                            optionalValue.ifPresent(value -> taskVariables.put(field.id(), value)))
-                    .peekLeft(error -> errors.put(field.id(), error)));
+    Either<Map<String, String>, Map<String, Object>> errorsOrVariables =
+        modalRenderer.extractVariables(formData, req.getPayload().getView().getState());
 
-    if (!errors.isEmpty()) {
-      return ctx.ackWithErrors(errors);
-    } else {
-      TaskResult taskResult =
-          ImmutableTaskResult.builder().taskId(taskId).taskVariables(taskVariables).build();
-
-      logger.debug("Submitting task {} with values {}", taskId, taskVariables);
-
-      return submissionListener.apply(taskResult, ctx);
-    }
+    return errorsOrVariables.fold(
+        ctx::ackWithErrors,
+        variables -> {
+          TaskResult taskResult =
+              ImmutableTaskResult.builder().taskId(taskId).taskVariables(variables).build();
+          logger.debug("Submitting task {} with values {}", taskId, variables);
+          return submissionListener.apply(taskResult, ctx);
+        });
   }
 
   private Response openHandler(BlockActionRequest req, ActionContext ctx) {
