@@ -35,10 +35,9 @@ public class CamundaTaskService implements TaskService {
   }
 
   @Override
-  public Optional<Task> followUpTask(Task task) {
-    return taskService.createTaskQuery()
-        .taskAssignee(task.assignee()) // TODO, is this always correct?
-        .processInstanceId(task.processInstanceId()).list().stream()
+  public Optional<Task> followUpTask(String processInstanceId, String assignee) {
+    return taskService.createTaskQuery().taskAssignee(assignee).processInstanceId(processInstanceId)
+        .list().stream()
         .map(taskMapper::fromTask)
         .findFirst();
   }

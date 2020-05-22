@@ -9,7 +9,7 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>powertask-slack-spring-boot-starter-web-authentication</artifactId>
+    <artifactId>powertask-slack-camunda-spring-boot-starter-web-authentication</artifactId>
     <name>Powertask Slack - Spring Boot Starter Web Auth</name>
     <dependencyManagement>
         <dependencies>
@@ -31,7 +31,7 @@
     <dependencies>
         <dependency>
             <groupId>io.powertask.slack</groupId>
-            <artifactId>powertask-slack-spring-boot-starter</artifactId>
+            <artifactId>powertask-slack-camunda-spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>

@@ -20,14 +20,6 @@ import com.slack.api.methods.response.views.ViewsPublishResponse;
 import com.slack.api.model.event.AppHomeOpenedEvent;
 import com.slack.api.model.view.View;
 
-// First step: Process types
-// - Process without a form, just show feedback that the form was started. And maybe for who the
-// next action is?
-// - Process with a form, show the form.
-
-// Next step:
-// - Check for any tasks in the process.
-
 public class AppHome {
 
   private final App app;

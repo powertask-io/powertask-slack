@@ -64,7 +64,7 @@
 
             <dependency>
                 <groupId>io.powertask.slack</groupId>
-                <artifactId>powertask-slack-spring-boot-starter-web-authentication</artifactId>
+                <artifactId>powertask-slack-camunda-spring-boot-starter-web-authentication</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

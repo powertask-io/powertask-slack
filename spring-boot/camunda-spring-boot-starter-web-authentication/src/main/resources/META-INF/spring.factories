@@ -1,4 +1,4 @@
 # Auto Configure
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-io.powertask.slack.spring.security.SlackOAuthSecurityConfig
+io.powertask.slack.camunda.spring.security.SlackOAuthSecurityConfig
 

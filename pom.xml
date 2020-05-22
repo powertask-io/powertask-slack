@@ -155,12 +155,6 @@ specific language governing permissions and limitations under the License.</lice
                 <enforcer.skip>false</enforcer.skip>
             </properties>
         </profile>
-        <profile>
-            <id>experimental</id>
-            <modules>
-                <module>identity-service</module>
-            </modules>
-        </profile>
     </profiles>
 
     <licenses>

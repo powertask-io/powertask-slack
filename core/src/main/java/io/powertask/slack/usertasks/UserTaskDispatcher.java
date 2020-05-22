@@ -109,8 +109,12 @@ public class UserTaskDispatcher {
   private Response submitAndShowNextTask(TaskRenderer.TaskResult taskResult, Context ctx) {
     Task task = taskService.taskById(taskResult.taskId());
     formService.submitTaskForm(taskResult.taskId(), taskResult.taskVariables());
+    return showFollowupTask(ctx, task.processInstanceId(), task.assignee());
+  }
+
+  public Response showFollowupTask(Context ctx, String processInstanceId, String assignee) {
     return taskService
-        .followUpTask(task)
+        .followUpTask(processInstanceId, assignee)
         .map(
             followUpTask ->
                 formService
