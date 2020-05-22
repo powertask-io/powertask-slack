@@ -39,7 +39,7 @@
         <!-- This depends on the camunda web starter, so we get that for free -->
         <dependency>
             <groupId>io.powertask.slack</groupId>
-            <artifactId>powertask-slack-spring-boot-starter</artifactId>
+            <artifactId>powertask-slack-camunda-spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>

@@ -22,6 +22,11 @@
         </dependency>
 
         <dependency>
+            <groupId>io.powertask.slack</groupId>
+            <artifactId>powertask-slack-camunda-adapter</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.26</version>

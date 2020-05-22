@@ -18,12 +18,10 @@ import com.slack.api.model.view.ViewState;
 import io.vavr.control.Either;
 import java.util.Map;
 import java.util.Optional;
-import org.camunda.bpm.engine.form.FormField;
 
 public interface FieldRenderer {
 
-  InputBlock render(FormField formField);
+  InputBlock render();
 
-  Either<String, Optional<Object>> extractValue(
-      FormField formField, Map<String, ViewState.Value> viewState);
+  Either<String, Optional<Object>> extractValue(Map<String, ViewState.Value> viewState);
 }

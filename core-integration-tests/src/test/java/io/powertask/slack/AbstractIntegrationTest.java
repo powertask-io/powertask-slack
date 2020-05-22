@@ -33,10 +33,15 @@ import com.slack.api.bolt.util.SlackRequestParser;
 import com.slack.api.bolt.util.SlackRequestParser.HttpRequest;
 import com.slack.api.methods.AsyncMethodsClient;
 import com.slack.api.methods.MethodsClient;
+import io.powertask.slack.camunda.CamundaFormService;
+import io.powertask.slack.camunda.CamundaTaskService;
+import io.powertask.slack.camunda.PropertiesResolver;
+import io.powertask.slack.camunda.TaskMapper;
+import io.powertask.slack.camunda.plugin.TaskListenerPlugin;
+import io.powertask.slack.camunda.plugin.UserTaskDispatcherListener;
 import io.powertask.slack.identity.EmailUserResolver;
 import io.powertask.slack.identity.UserResolver;
 import io.powertask.slack.usertasks.UserTaskDispatcher;
-import io.powertask.slack.usertasks.plugin.TaskListenerPlugin;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URLDecoder;
@@ -68,6 +73,7 @@ public abstract class AbstractIntegrationTest {
 
   protected ProcessEngine processEngine;
   protected UserTaskDispatcher userTaskDispatcher;
+  protected UserTaskDispatcherListener powertaskListener;
   protected WireMockServer wireMockServer;
   protected App app;
   protected SlackRequestParser requestParser;
@@ -122,14 +128,20 @@ public abstract class AbstractIntegrationTest {
     requestParser = new SlackRequestParser(appConfig);
     UserResolver userResolver = new EmailUserResolver(methodsClient);
 
+    PropertiesResolver propertiesResolver =
+        new PropertiesResolver(processEngine.getRepositoryService());
+    TaskMapper taskMapper = new TaskMapper(propertiesResolver, processEngine.getRuntimeService());
+    TaskService taskService = new CamundaTaskService(processEngine.getTaskService(), taskMapper);
+    FormService formService = new CamundaFormService(processEngine.getFormService());
+
     userTaskDispatcher =
-        new UserTaskDispatcher(asyncMethodsClient, userResolver, app, processEngine);
+        new UserTaskDispatcher(asyncMethodsClient, userResolver, app, taskService, formService);
+    powertaskListener = new UserTaskDispatcherListener(taskMapper, userTaskDispatcher);
   }
 
   // TODO, ugly cyclic dep :'(
   private void addTaskDispatcherToProcessEngine() {
-    // This is probably illegal...
-    beans.put("userTaskDispatcher", userTaskDispatcher);
+    beans.put("powertaskListener", powertaskListener);
   }
 
   protected Response slackInteraction(String name, Map<String, String> variables) {

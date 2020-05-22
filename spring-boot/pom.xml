@@ -20,7 +20,8 @@
 
     <modules>
         <module>spring-boot-autoconfigure</module>
-        <module>spring-boot-starter</module>
+        <module>camunda-spring-boot-autoconfigure</module>
+        <module>camunda-spring-boot-starter</module>
     </modules>
 
     <dependencyManagement>

@@ -34,6 +34,12 @@
 
             <dependency>
                 <groupId>io.powertask.slack</groupId>
+                <artifactId>powertask-slack-camunda-adapter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.powertask.slack</groupId>
                 <artifactId>powertask-slack-spring-boot</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -46,7 +52,13 @@
 
             <dependency>
                 <groupId>io.powertask.slack</groupId>
-                <artifactId>powertask-slack-spring-boot-starter</artifactId>
+                <artifactId>powertask-slack-camunda-spring-boot-autoconfigure</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.powertask.slack</groupId>
+                <artifactId>powertask-slack-camunda-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

@@ -56,10 +56,10 @@ public class MovieReviewIT extends AbstractIntegrationTest {
     substitutions.put("$.actions[0].action_id", "modal-task-open/" + task.getId());
 
     // Wait for the async work after notification of a new task is completed.
-    Thread.sleep(100);
+    Thread.sleep(500);
 
     slackInteraction("block-action.http", substitutions);
-    Thread.sleep(100);
+    Thread.sleep(500);
 
     // Should still be waiting.
     ProcessEngineTests.assertThat(processInstance).isWaitingAt("basic-review");
@@ -68,7 +68,7 @@ public class MovieReviewIT extends AbstractIntegrationTest {
     substitutions.clear();
     substitutions.put("$.view.callback_id", "modal-task-submit/" + task.getId());
     slackInteraction("view-submission-1.http", substitutions);
-    Thread.sleep(100);
+    Thread.sleep(500);
 
     // Should now be waiting in the next task.
     ProcessEngineTests.assertThat(processInstance).isWaitingAt("elaborate-review");
@@ -84,7 +84,7 @@ public class MovieReviewIT extends AbstractIntegrationTest {
     substitutions.clear();
     substitutions.put("$.view.callback_id", "modal-task-submit/" + task2.getId());
     slackInteraction("view-submission-2.http", substitutions);
-    Thread.sleep(100);
+    Thread.sleep(500);
 
     ProcessEngineTests.assertThat(processInstance).isEnded();
     ProcessEngineTests.assertThat(processInstance)

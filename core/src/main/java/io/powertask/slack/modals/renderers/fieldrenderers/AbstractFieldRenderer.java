@@ -16,30 +16,27 @@ package io.powertask.slack.modals.renderers.fieldrenderers;
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 
 import com.slack.api.model.block.InputBlock;
+import com.slack.api.model.block.composition.BlockCompositions;
 import com.slack.api.model.block.element.BlockElement;
-import io.powertask.slack.FieldInformation;
-import org.camunda.bpm.engine.form.FormField;
+import io.powertask.slack.FormField;
 
-public abstract class AbstractFieldRenderer implements FieldRenderer {
+public abstract class AbstractFieldRenderer<T> implements FieldRenderer {
 
-  protected final FormField formField;
-  public static final String CONSTRAINT_REQUIRED = "required";
-  public static final String PROPERTY_SLACK_HINT = "slack-hint";
-  public static final String PROPERTY_SLACK_PLACEHOLDER = "slack-placeholder";
+  protected final FormField<T> formField;
 
-  protected AbstractFieldRenderer(FormField formField) {
+  protected AbstractFieldRenderer(FormField<T> formField) {
     this.formField = formField;
   }
 
   protected abstract BlockElement renderElement();
 
   @Override
-  public InputBlock render(FormField formField) {
+  public InputBlock render() {
     return InputBlock.builder()
-        .blockId(formField.getId())
-        .optional(!FieldInformation.hasConstraint(formField, CONSTRAINT_REQUIRED))
-        .label(plainText(formField.getLabel()))
-        .hint(FieldInformation.getPlainTextProperty(formField, PROPERTY_SLACK_HINT).orElse(null))
+        .blockId(formField.id())
+        .optional(!formField.required())
+        .label(plainText(formField.label()))
+        .hint(formField.hint().map(BlockCompositions::plainText).orElse(null))
         .element(renderElement())
         .build();
   }

@@ -20,51 +20,49 @@ import static com.slack.api.model.view.Views.viewTitle;
 
 import com.slack.api.model.block.LayoutBlock;
 import com.slack.api.model.view.View;
-import io.powertask.slack.FormLike;
-import io.powertask.slack.FormLikePropertiesBase;
-import io.powertask.slack.PropertiesResolver;
-import io.powertask.slack.VariablesResolver;
+import io.powertask.slack.Form;
+import io.powertask.slack.FormField;
+import io.powertask.slack.TaskLike;
+import io.powertask.slack.TaskService;
+import io.powertask.slack.formfields.BooleanField;
+import io.powertask.slack.formfields.DateField;
+import io.powertask.slack.formfields.EnumField;
+import io.powertask.slack.formfields.LongField;
+import io.powertask.slack.formfields.StringField;
 import io.powertask.slack.modals.renderers.fieldrenderers.*;
+import io.powertask.slack.usertasks.Task;
+import io.powertask.slack.usertasks.renderers.MessageComponents;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.camunda.bpm.engine.form.FormData;
-import org.camunda.bpm.engine.form.FormField;
-import org.camunda.bpm.engine.impl.form.type.BooleanFormType;
-import org.camunda.bpm.engine.impl.form.type.DateFormType;
-import org.camunda.bpm.engine.impl.form.type.EnumFormType;
-import org.camunda.bpm.engine.impl.form.type.LongFormType;
-import org.camunda.bpm.engine.impl.form.type.StringFormType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class ModalRenderer<T extends FormLike> extends FormLikePropertiesBase<T> {
-  private static final Logger logger = LoggerFactory.getLogger(ModalRenderer.class);
+public class ModalRenderer {
 
-  private static final String PROPERTY_SLACK_TITLE = "slack-title";
+  private final TaskService taskService;
 
-  public ModalRenderer(
-      PropertiesResolver<T> formLikePropertiesResolver, VariablesResolver<T> variablesResolver) {
-    super(formLikePropertiesResolver, variablesResolver);
+  public ModalRenderer(TaskService taskService) {
+    this.taskService = taskService;
   }
 
-  public boolean canRender(FormData formData) {
+  public boolean canRender(Form form) {
     return true; // TODO, YOLO
   }
 
-  public View buildModal(T t, FormData formData, String callbackId) {
-    // TODO, this can be max 25 characters.
-    String titleValue = getProperty(t, PROPERTY_SLACK_TITLE).orElse(t.getName());
+  public View buildModal(TaskLike taskLike, Form form, String callbackId) {
 
     List<LayoutBlock> blocks = new ArrayList<>();
 
-    blocks.addAll(getErrorBlocks(t));
-    blocks.addAll(getDescriptionBlocks(t));
-    blocks.addAll(getVariablesBlocks(t));
+    if (taskLike instanceof Task) {
+      blocks.addAll(MessageComponents.getErrorBlocks((Task) taskLike));
+    }
+    blocks.addAll(MessageComponents.getDescriptionBlocks(taskLike));
+    if (taskLike instanceof Task) {
+      blocks.addAll(MessageComponents.getVariablesBlocks(taskService, (Task) taskLike));
+    }
 
     blocks.addAll(
-        formData.getFormFields().stream()
-            .map(field -> getRenderer(field).render(field))
+        form.fields().stream()
+            .map(field -> getRenderer(field).render())
             .collect(Collectors.toList()));
 
     return view(
@@ -72,25 +70,26 @@ public class ModalRenderer<T extends FormLike> extends FormLikePropertiesBase<T>
             view.callbackId(callbackId)
                 .type("modal")
                 .notifyOnClose(false)
-                .title(viewTitle(title -> title.type("plain_text").text(titleValue).emoji(true)))
+                .title(
+                    viewTitle(title -> title.type("plain_text").text(taskLike.title()).emoji(true)))
                 .submit(viewSubmit(submit -> submit.type("plain_text").text("Submit").emoji(true)))
                 .close(viewClose(close -> close.type("plain_text").text("Cancel").emoji(true)))
                 .blocks(blocks));
   }
 
-  public FieldRenderer getRenderer(FormField field) {
-    if (field.getType() instanceof StringFormType) {
-      return new StringFieldRenderer(field);
-    } else if (field.getType() instanceof EnumFormType) {
-      return new EnumFieldRenderer(field);
-    } else if (field.getType() instanceof BooleanFormType) {
-      return new BooleanFieldRenderer(field);
-    } else if (field.getType() instanceof LongFormType) {
-      return new LongFieldRenderer(field);
-    } else if (field.getType() instanceof DateFormType) {
-      return new DateFieldRenderer(field);
+  public FieldRenderer getRenderer(FormField<?> field) {
+    if (field instanceof StringField) {
+      return new StringFieldRenderer((StringField) field);
+    } else if (field instanceof EnumField) {
+      return new RadioFieldRenderer((EnumField) field);
+    } else if (field instanceof BooleanField) {
+      return new BooleanFieldRenderer((BooleanField) field);
+    } else if (field instanceof LongField) {
+      return new LongFieldRenderer((LongField) field);
+    } else if (field instanceof DateField) {
+      return new DateFieldRenderer((DateField) field);
     } else {
-      throw new RuntimeException("Missing implementation for field type " + field.getType());
+      throw new RuntimeException("Missing implementation for field type " + field.getClass());
     }
   }
 }

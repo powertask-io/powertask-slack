@@ -19,34 +19,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.slack.api.model.block.element.BlockElement;
 import com.slack.api.model.block.element.PlainTextInputElement;
 import com.slack.api.model.view.ViewState;
+import io.powertask.slack.formfields.ImmutableStringField;
+import io.powertask.slack.formfields.StringField;
 import io.vavr.control.Either;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.camunda.bpm.engine.form.FormFieldValidationConstraint;
-import org.camunda.bpm.engine.impl.form.FormFieldImpl;
-import org.camunda.bpm.engine.impl.form.FormFieldValidationConstraintImpl;
-import org.camunda.bpm.engine.impl.form.type.StringFormType;
-import org.camunda.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl;
 import org.junit.jupiter.api.Test;
 
 class StringFieldRendererTest {
 
-  private FormFieldImpl getBaseField(String id) {
-    FormFieldImpl formField = new FormFieldImpl();
-    formField.setType(new StringFormType());
-    formField.setValue(new PrimitiveTypeValueImpl.StringValueImpl(null));
-    formField.setId(id);
-    return formField;
+  private ImmutableStringField.Builder getBaseField(String id) {
+    return ImmutableStringField.builder().id(id).label(id).multiline(false).required(true);
   }
 
   @Test
   void renderBasicElement() {
     String id = "1234";
 
-    FormFieldImpl formField = getBaseField(id);
+    StringField formField = getBaseField(id).build();
 
     BlockElement renderedElement =
         new io.powertask.slack.modals.renderers.fieldrenderers.StringFieldRenderer(formField)
@@ -64,18 +55,14 @@ class StringFieldRendererTest {
     String value = "the-value";
     String placeholder = "Fill it out...";
 
-    FormFieldImpl formField = getBaseField(id);
-    formField.setValue(new PrimitiveTypeValueImpl.StringValueImpl(value));
-
-    Map<String, String> properties = new HashMap<>();
-    properties.put("slack-multiline", "true");
-    properties.put("slack-placeholder", placeholder);
-    formField.setProperties(properties);
-
-    ArrayList<FormFieldValidationConstraint> constraints = new ArrayList<>();
-    constraints.add(new FormFieldValidationConstraintImpl("minlength", "10"));
-    constraints.add(new FormFieldValidationConstraintImpl("maxlength", "30"));
-    formField.setValidationConstraints(constraints);
+    StringField formField =
+        getBaseField(id)
+            .value(value)
+            .multiline(true)
+            .placeholder(placeholder)
+            .minLength(10)
+            .maxLength(30)
+            .build();
 
     BlockElement renderedElement = new StringFieldRenderer(formField).renderElement();
 
@@ -95,7 +82,7 @@ class StringFieldRendererTest {
   @Test
   void extractValue() {
     String id = "1234";
-    FormFieldImpl formField = getBaseField(id);
+    StringField formField = getBaseField(id).build();
 
     ViewState.Value value = new ViewState.Value();
     value.setValue("Hello, there!");
@@ -104,6 +91,6 @@ class StringFieldRendererTest {
 
     assertEquals(
         Either.right(Optional.of("Hello, there!")),
-        new StringFieldRenderer(formField).extractValue(formField, fields));
+        new StringFieldRenderer(formField).extractValue(fields));
   }
 }

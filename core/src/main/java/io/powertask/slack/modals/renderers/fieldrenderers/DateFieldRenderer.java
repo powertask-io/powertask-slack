@@ -13,60 +13,44 @@
  */
 package io.powertask.slack.modals.renderers.fieldrenderers;
 
-import static io.powertask.slack.FunctionOps.wrapExceptions;
-
+import com.slack.api.model.block.composition.BlockCompositions;
 import com.slack.api.model.block.element.BlockElement;
 import com.slack.api.model.block.element.DatePickerElement;
 import com.slack.api.model.view.ViewState;
-import io.powertask.slack.FieldInformation;
+import io.powertask.slack.formfields.DateField;
 import io.vavr.control.Either;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.Optional;
-import org.camunda.bpm.engine.form.FormField;
 
-public class DateFieldRenderer extends AbstractFieldRenderer {
-  // Two libraries, two stringly typed dates ¯\_(ツ)_/¯
-  private static final SimpleDateFormat CAMUNDA_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
-  private static final SimpleDateFormat SLACK_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-
+public class DateFieldRenderer extends AbstractFieldRenderer<LocalDate> {
   private static final String FIELD_SUFFIX = "_date";
+  private final DateField dateField;
 
-  public DateFieldRenderer(FormField formField) {
+  public DateFieldRenderer(DateField formField) {
     super(formField);
+    dateField = formField;
   }
 
   @Override
   protected BlockElement renderElement() {
     return DatePickerElement.builder()
-        .placeholder(
-            FieldInformation.getPlainTextProperty(formField, PROPERTY_SLACK_PLACEHOLDER)
-                .orElse(null))
-        .initialDate(getInitialDateString())
-        .actionId(formField.getId() + FIELD_SUFFIX)
+        .placeholder(dateField.placeholder().map(BlockCompositions::plainText).orElse(null))
+        .initialDate(dateField.value().map(LocalDate::toString).orElse(null))
+        .actionId(formField.id() + FIELD_SUFFIX)
         .build();
   }
 
-  // The Form Value of a date is always a string, even if the process variable is a Date.
-  private String getInitialDateString() {
-    return Optional.ofNullable((String) formField.getValue().getValue())
-        .map(wrapExceptions(CAMUNDA_DATE_FORMAT::parse))
-        .map(SLACK_DATE_FORMAT::format)
-        .orElse(null);
-  }
-
   @Override
-  public Either<String, Optional<Object>> extractValue(
-      FormField formField, Map<String, ViewState.Value> viewState) {
-    String dateString = viewState.get(formField.getId() + FIELD_SUFFIX).getSelectedDate();
+  public Either<String, Optional<Object>> extractValue(Map<String, ViewState.Value> viewState) {
+    String dateString = viewState.get(formField.id() + FIELD_SUFFIX).getSelectedDate();
     if (dateString == null) {
       return Either.right(Optional.empty());
     } else {
       try {
-        return Either.right(
-            Optional.of(SLACK_DATE_FORMAT.parse(dateString)).map(CAMUNDA_DATE_FORMAT::format));
-      } catch (ParseException e) {
+        return Either.right(Optional.of(LocalDate.parse(dateString)));
+      } catch (DateTimeParseException e) {
         return Either.left("Failed to parse date");
       }
     }

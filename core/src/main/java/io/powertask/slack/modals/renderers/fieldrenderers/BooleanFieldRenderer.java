@@ -16,28 +16,31 @@ package io.powertask.slack.modals.renderers.fieldrenderers;
 import static com.slack.api.model.block.composition.BlockCompositions.option;
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 
+import com.slack.api.model.block.composition.BlockCompositions;
 import com.slack.api.model.block.composition.OptionObject;
+import com.slack.api.model.block.composition.TextObject;
 import com.slack.api.model.block.element.BlockElement;
 import com.slack.api.model.block.element.RadioButtonsElement;
 import com.slack.api.model.view.ViewState;
-import io.powertask.slack.FieldInformation;
+import io.powertask.slack.formfields.BooleanField;
 import io.vavr.control.Either;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.camunda.bpm.engine.form.FormField;
-import org.camunda.bpm.engine.variable.value.BooleanValue;
 
 // TODO, we should also be able to render such a field as a select, or as a checkbox.
-public class BooleanFieldRenderer extends AbstractFieldRenderer {
+public class BooleanFieldRenderer extends AbstractFieldRenderer<Boolean> {
+
+  private final BooleanField booleanField;
 
   private static final String FIELD_SUFFIX = "_boolean";
   public static final String PROPERTY_SLACK_TRUE_LABEL = "slack-true-label";
   public static final String PROPERTY_SLACK_FALSE_LABEL = "slack-false-label";
 
-  public BooleanFieldRenderer(FormField formField) {
+  public BooleanFieldRenderer(BooleanField formField) {
     super(formField);
+    booleanField = formField;
   }
 
   @Override
@@ -46,34 +49,34 @@ public class BooleanFieldRenderer extends AbstractFieldRenderer {
     List<OptionObject> options =
         Arrays.asList(
             option(
-                FieldInformation.getPlainTextProperty(formField, PROPERTY_SLACK_TRUE_LABEL)
+                booleanField
+                    .trueLabel()
+                    .<TextObject>map(BlockCompositions::markdownText)
                     .orElse(plainText("Yes")),
                 "true"),
             option(
-                FieldInformation.getPlainTextProperty(formField, PROPERTY_SLACK_FALSE_LABEL)
+                booleanField
+                    .falseLabel()
+                    .<TextObject>map(BlockCompositions::markdownText)
                     .orElse(plainText("No")),
                 "false"));
 
-    Optional<String> initialValue =
-        Optional.ofNullable((BooleanValue) formField.getValue())
-            .map(BooleanValue::getValue)
-            .map(Object::toString);
+    Optional<String> initialValue = booleanField.value().map(Object::toString);
     Optional<OptionObject> initialOption =
         initialValue.flatMap(
             value -> options.stream().filter(o -> o.getValue().equals(value)).findFirst());
 
     return RadioButtonsElement.builder()
-        .actionId(formField.getId() + FIELD_SUFFIX)
+        .actionId(booleanField.id() + FIELD_SUFFIX)
         .initialOption(initialOption.orElse(null))
         .options(options)
         .build();
   }
 
   @Override
-  public Either<String, Optional<Object>> extractValue(
-      FormField formField, Map<String, ViewState.Value> viewState) {
+  public Either<String, Optional<Object>> extractValue(Map<String, ViewState.Value> viewState) {
     return Either.right(
-        Optional.ofNullable(viewState.get(formField.getId() + FIELD_SUFFIX).getSelectedOption())
+        Optional.ofNullable(viewState.get(formField.id() + FIELD_SUFFIX).getSelectedOption())
             .map(ViewState.SelectedOption::getValue));
   }
 }

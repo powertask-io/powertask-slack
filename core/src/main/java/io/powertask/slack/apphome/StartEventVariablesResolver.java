@@ -13,20 +13,21 @@
  */
 package io.powertask.slack.apphome;
 
+import io.powertask.slack.StartEvent;
 import io.powertask.slack.VariablesResolver;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-public class StartEventVariablesResolver implements VariablesResolver<StartEventDetails> {
+public class StartEventVariablesResolver implements VariablesResolver<StartEvent> {
 
   @Override
-  public Map<String, Object> getVariables(StartEventDetails startEvent) {
+  public Map<String, Object> getVariables(StartEvent startEvent) {
     return Collections.emptyMap();
   }
 
   @Override
-  public Map<String, Object> getVariables(StartEventDetails startEvent, Set<String> variableNames) {
+  public Map<String, Object> getVariables(StartEvent startEvent, Set<String> variableNames) {
     return Collections.emptyMap();
   }
 }

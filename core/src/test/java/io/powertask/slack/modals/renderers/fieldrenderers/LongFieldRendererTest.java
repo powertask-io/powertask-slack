@@ -19,35 +19,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.slack.api.model.block.element.BlockElement;
 import com.slack.api.model.block.element.PlainTextInputElement;
 import com.slack.api.model.view.ViewState;
+import io.powertask.slack.formfields.ImmutableLongField;
+import io.powertask.slack.formfields.LongField;
 import io.vavr.control.Either;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.camunda.bpm.engine.form.FormFieldValidationConstraint;
-import org.camunda.bpm.engine.impl.form.FormFieldImpl;
-import org.camunda.bpm.engine.impl.form.FormFieldValidationConstraintImpl;
-import org.camunda.bpm.engine.impl.form.type.LongFormType;
-import org.camunda.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl;
 import org.junit.jupiter.api.Test;
 
 class LongFieldRendererTest {
 
-  private FormFieldImpl getBaseField(String id) {
-    FormFieldImpl formField = new FormFieldImpl();
-    formField.setType(new LongFormType());
-    formField.setValue(new PrimitiveTypeValueImpl.LongValueImpl(null));
-    formField.setId(id);
-    return formField;
+  private ImmutableLongField.Builder getBaseField(String id) {
+    return ImmutableLongField.builder().id(id).label(id).required(true);
   }
 
   @Test
   void renderBasicElement() {
     String id = "1234";
 
-    FormFieldImpl formField = getBaseField(id);
+    LongField formField = getBaseField(id).build();
 
     BlockElement renderedElement = new LongFieldRenderer(formField).renderElement();
 
@@ -59,22 +49,16 @@ class LongFieldRendererTest {
   @Test
   void renderFullOptionsElement() {
     String id = "1234";
-    Long value = 713L;
+    long value = 713L;
     String placeholder = "Enter your long...";
 
-    FormFieldImpl formField = getBaseField(id);
-
-    formField.setValue(new PrimitiveTypeValueImpl.LongValueImpl(value));
-
-    Map<String, String> properties = new HashMap<>();
-    properties.put("slack-placeholder", placeholder);
-    formField.setProperties(properties);
+    LongField formField = getBaseField(id).value(value).placeholder(placeholder).build();
 
     BlockElement renderedElement = new LongFieldRenderer(formField).renderElement();
 
     BlockElement expectedElement =
         PlainTextInputElement.builder()
-            .initialValue(value.toString())
+            .initialValue(String.valueOf(value))
             .placeholder(plainText(placeholder))
             .actionId(id + "_long")
             .build();
@@ -85,7 +69,7 @@ class LongFieldRendererTest {
   @Test
   void extractValue() {
     String id = "1234";
-    FormFieldImpl formField = getBaseField(id);
+    LongField formField = getBaseField(id).build();
 
     ViewState.Value value = new ViewState.Value();
     value.setValue("1234");
@@ -93,19 +77,13 @@ class LongFieldRendererTest {
     Map<String, ViewState.Value> fields = Collections.singletonMap("1234_long", value);
 
     assertEquals(
-        Either.right(Optional.of(1234L)),
-        new LongFieldRenderer(formField).extractValue(formField, fields));
+        Either.right(Optional.of(1234L)), new LongFieldRenderer(formField).extractValue(fields));
   }
 
   @Test
   void extractValueMinMaxConstraint() {
     String id = "1234";
-    FormFieldImpl formField = getBaseField(id);
-
-    List<FormFieldValidationConstraint> constraints = new ArrayList<>();
-    constraints.add(new FormFieldValidationConstraintImpl("min", "10"));
-    constraints.add(new FormFieldValidationConstraintImpl("max", "101"));
-    formField.setValidationConstraints(constraints);
+    LongField formField = getBaseField(id).min(10).max(100).build();
 
     // Value is below 'min' constraint
     ViewState.Value valueMin = new ViewState.Value();
@@ -114,7 +92,7 @@ class LongFieldRendererTest {
 
     assertEquals(
         Either.left("Minimum value is 10"),
-        new LongFieldRenderer(formField).extractValue(formField, fieldsMin));
+        new LongFieldRenderer(formField).extractValue(fieldsMin));
 
     // Value is above 'max' constraint
     ViewState.Value valueMax = new ViewState.Value();
@@ -124,25 +102,6 @@ class LongFieldRendererTest {
     assertEquals(
         // The configured max is exclusive, but we report an inclusive value
         Either.left("Maximum value is 100"),
-        new LongFieldRenderer(formField).extractValue(formField, fieldsMax));
-  }
-
-  @Test
-  public void maxValueIsExclusive() {
-    String id = "1234";
-    FormFieldImpl formField = getBaseField(id);
-
-    List<FormFieldValidationConstraint> constraints = new ArrayList<>();
-    constraints.add(new FormFieldValidationConstraintImpl("max", "11"));
-    formField.setValidationConstraints(constraints);
-
-    // Value is above 'max' constraint
-    ViewState.Value value = new ViewState.Value();
-    value.setValue("11");
-    Map<String, ViewState.Value> fields = Collections.singletonMap("1234_long", value);
-
-    assertEquals(
-        Either.left("Maximum value is 10"),
-        new LongFieldRenderer(formField).extractValue(formField, fields));
+        new LongFieldRenderer(formField).extractValue(fieldsMax));
   }
 }

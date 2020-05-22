@@ -21,12 +21,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.camunda.bpm</groupId>
-            <artifactId>camunda-engine</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>com.slack.api</groupId>
             <artifactId>bolt</artifactId>
             <version>${version.slack}</version>

@@ -45,6 +45,7 @@ specific language governing permissions and limitations under the License.</lice
         <module>parent</module>
         <module>commons</module>
         <module>core</module>
+        <module>camunda-adapter</module>
         <module>core-integration-tests</module>
         <module>spring-boot</module>
         <module>examples</module>

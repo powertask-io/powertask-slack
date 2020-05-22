@@ -17,17 +17,13 @@ import com.slack.api.RequestConfigurator;
 import com.slack.api.bolt.handler.builtin.BlockActionHandler;
 import com.slack.api.bolt.handler.builtin.ViewSubmissionHandler;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
-import io.powertask.slack.usertasks.TaskDetails;
-import java.util.Collections;
+import io.powertask.slack.Form;
+import io.powertask.slack.usertasks.Task;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import org.camunda.bpm.engine.form.FormData;
-import org.camunda.bpm.engine.form.TaskFormData;
 import org.immutables.value.Value;
 
-// The idea is to have something that doesn't depend on the Camunda engine, nor the Slack
-// App (other than some Slack message types)
 public interface TaskRenderer {
 
   @Value.Immutable
@@ -51,16 +47,12 @@ public interface TaskRenderer {
     ViewSubmissionHandler viewSubmissionHandler();
   }
 
-  boolean canRender(TaskFormData formData);
+  boolean canRender(Form form);
 
   RequestConfigurator<ChatPostMessageRequest.ChatPostMessageRequestBuilder> initialMessage(
-      TaskDetails taskDetails, FormData formData);
+      Task task, Form form);
 
-  default List<BlockActionRegistration> blockActionRegistrations() {
-    return Collections.emptyList();
-  }
+  List<BlockActionRegistration> blockActionRegistrations();
 
-  default List<ViewSubmissionRegistration> viewSubmissionRegistrations() {
-    return Collections.emptyList();
-  }
+  List<ViewSubmissionRegistration> viewSubmissionRegistrations();
 }
