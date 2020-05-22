@@ -29,7 +29,6 @@ import com.slack.api.bolt.request.builtin.BlockActionRequest;
 import com.slack.api.bolt.request.builtin.ViewSubmissionRequest;
 import com.slack.api.bolt.response.Response;
 import com.slack.api.model.block.LayoutBlock;
-import com.slack.api.model.view.ViewState;
 import io.powertask.slack.Form;
 import io.powertask.slack.FormService;
 import io.powertask.slack.Process;
@@ -38,6 +37,7 @@ import io.powertask.slack.StartEvent;
 import io.powertask.slack.TaskService;
 import io.powertask.slack.identity.UserResolver;
 import io.powertask.slack.modals.renderers.ModalRenderer;
+import io.vavr.control.Either;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -85,34 +85,26 @@ public class ProcessDispatcher {
 
   // TODO, lot of duplication with ModalTaskRenderer.submitHandler
   private Response submitProcessModal(ViewSubmissionRequest req, ViewSubmissionContext ctx) {
-
-    Map<String, Map<String, ViewState.Value>> viewStateValues =
-        req.getPayload().getView().getState().getValues();
-
     String processDefinitionId =
         extractProcessDefinitionIdFromCallbackId(req.getPayload().getView().getCallbackId());
-    Form form = formService.startForm(processDefinitionId).get();
+    Form form =
+        formService
+            .startForm(processDefinitionId)
+            .orElseThrow(
+                () ->
+                    new RuntimeException(
+                        "No form found for process definition " + processDefinitionId));
 
-    Map<String, Object> formVariables = new HashMap<>();
-    Map<String, String> errors = new HashMap<>();
-    form.fields()
-        .forEach(
-            field ->
-                modalRenderer
-                    .getRenderer(field)
-                    .extractValue(viewStateValues.get(field.id()))
-                    .peek(
-                        optionalValue ->
-                            optionalValue.ifPresent(value -> formVariables.put(field.id(), value)))
-                    .peekLeft(error -> errors.put(field.id(), error)));
+    Either<Map<String, String>, Map<String, Object>> errorsOrVariables =
+        modalRenderer.extractVariables(form, req.getPayload().getView().getState());
 
-    if (!errors.isEmpty()) {
-      return ctx.ackWithErrors(errors);
-    } else {
-      StartEvent startEventDetails = processService.startEvent(processDefinitionId);
-      startProcess(startEventDetails, formVariables, req.getPayload().getUser().getId());
-      return ctx.ack();
-    }
+    return errorsOrVariables.fold(
+        ctx::ackWithErrors,
+        formVariables -> {
+          StartEvent startEventDetails = processService.startEvent(processDefinitionId);
+          startProcess(startEventDetails, formVariables, req.getPayload().getUser().getId());
+          return ctx.ack();
+        });
   }
 
   private void startProcess(
@@ -134,8 +126,7 @@ public class ProcessDispatcher {
               + " with variables "
               + initiatorVariables);
       // Probably there's no start form, so we use `startProcessInstanceById`.
-      processService.startProcessWithForm(
-          startEventDetails.processDefinitionId(), initiatorVariables);
+      processService.startProcess(startEventDetails.processDefinitionId(), initiatorVariables);
     } else {
       Map<String, Object> allVariables = new HashMap<>(formVariables);
       allVariables.putAll(initiatorVariables);

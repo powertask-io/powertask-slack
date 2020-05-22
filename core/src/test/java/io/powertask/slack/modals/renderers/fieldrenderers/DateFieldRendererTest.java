@@ -31,8 +31,6 @@ import org.junit.jupiter.api.Test;
 
 class DateFieldRendererTest {
 
-  static String camundaDatePattern = "dd/MM/yyyy";
-
   private ImmutableDateField.Builder getBaseField(String id) {
     return ImmutableDateField.builder().id(id).label(id).required(true);
   }

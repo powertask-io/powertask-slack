@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 public class RadioFieldRenderer extends AbstractFieldRenderer<String> {
 
   private static final String FIELD_SUFFIX = "_enum";
-  private static final String PROPERTY_SLACK_DESCRIPTION_PREFIX = "slack-description-";
   private final EnumField enumField;
 
   public RadioFieldRenderer(EnumField formField) {
@@ -41,7 +40,6 @@ public class RadioFieldRenderer extends AbstractFieldRenderer<String> {
 
   @Override
   protected BlockElement renderElement() {
-    @SuppressWarnings("unchecked")
     Map<String, EnumField.EnumValue> values = enumField.values();
 
     List<OptionObject> options =
