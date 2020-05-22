@@ -45,8 +45,8 @@ public class CamundaFormService implements FormService {
     formService.submitTaskForm(taskId, mapVariableValues(variables));
   }
 
-  void submitStartForm(String processDefinitionId, Map<String, Object> variables) {
-    formService.submitStartForm(processDefinitionId, mapVariableValues(variables));
+  String submitStartForm(String processDefinitionId, Map<String, Object> variables) {
+    return formService.submitStartForm(processDefinitionId, mapVariableValues(variables)).getId();
   }
 
   // We get back LocalDate object from Powertask, but Camunda form submit wants

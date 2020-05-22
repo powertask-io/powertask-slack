@@ -22,7 +22,7 @@ public interface ProcessService {
   StartEvent startEvent(String processDefinitionId);
 
   // This still takes variables, for example for the 'initiator' of the process.
-  void startProcess(String processDefinitionId, Map<String, Object> processVariables);
+  String startProcess(String processDefinitionId, Map<String, Object> processVariables);
 
-  void startProcessWithForm(String processDefinitionId, Map<String, Object> formVariables);
+  String startProcessWithForm(String processDefinitionId, Map<String, Object> formVariables);
 }

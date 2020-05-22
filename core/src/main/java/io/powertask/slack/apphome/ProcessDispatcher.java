@@ -23,6 +23,7 @@ import static com.slack.api.model.block.element.BlockElements.button;
 import static io.powertask.slack.SlackApiOps.requireOk;
 
 import com.slack.api.bolt.App;
+import com.slack.api.bolt.context.Context;
 import com.slack.api.bolt.context.builtin.ActionContext;
 import com.slack.api.bolt.context.builtin.ViewSubmissionContext;
 import com.slack.api.bolt.request.builtin.BlockActionRequest;
@@ -37,6 +38,7 @@ import io.powertask.slack.StartEvent;
 import io.powertask.slack.TaskService;
 import io.powertask.slack.identity.UserResolver;
 import io.powertask.slack.modals.renderers.ModalRenderer;
+import io.powertask.slack.usertasks.UserTaskDispatcher;
 import io.vavr.control.Either;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,16 +65,19 @@ public class ProcessDispatcher {
 
   private final ProcessService processService;
   private final FormService formService;
+  private final UserTaskDispatcher userTaskDispatcher;
 
   public ProcessDispatcher(
       App app,
       ProcessService processService,
       TaskService taskService,
       FormService formService,
+      UserTaskDispatcher userTaskDispatcher,
       UserResolver userResolver) {
     this.app = app;
     this.processService = processService;
     this.formService = formService;
+    this.userTaskDispatcher = userTaskDispatcher;
     this.userResolver = userResolver;
     this.modalRenderer = new ModalRenderer(taskService);
     registerActionHandlers();
@@ -83,10 +88,10 @@ public class ProcessDispatcher {
     app.viewSubmission(processSubmitPattern, this::submitProcessModal);
   }
 
-  // TODO, lot of duplication with ModalTaskRenderer.submitHandler
   private Response submitProcessModal(ViewSubmissionRequest req, ViewSubmissionContext ctx) {
     String processDefinitionId =
         extractProcessDefinitionIdFromCallbackId(req.getPayload().getView().getCallbackId());
+
     Form form =
         formService
             .startForm(processDefinitionId)
@@ -102,22 +107,24 @@ public class ProcessDispatcher {
         ctx::ackWithErrors,
         formVariables -> {
           StartEvent startEventDetails = processService.startEvent(processDefinitionId);
-          startProcess(startEventDetails, formVariables, req.getPayload().getUser().getId());
-          return ctx.ack();
+          String engineUserId = userResolver.toEngineUserId(req.getPayload().getUser().getId());
+          return startProcess(ctx, startEventDetails, formVariables, engineUserId);
         });
   }
 
-  private void startProcess(
-      StartEvent startEventDetails, Map<String, Object> formVariables, String slackUserId) {
+  private Response startProcess(
+      Context ctx,
+      StartEvent startEventDetails,
+      Map<String, Object> formVariables,
+      String engineUserId) {
 
     Map<String, Object> initiatorVariables =
         startEventDetails
             .initiatorVariableName()
-            .map(
-                name ->
-                    Collections.<String, Object>singletonMap(
-                        name, userResolver.toEngineUserId(slackUserId)))
+            .map(name -> Collections.<String, Object>singletonMap(name, engineUserId))
             .orElse(Collections.emptyMap());
+
+    String processInstanceId;
 
     if (formVariables.isEmpty()) {
       logger.info(
@@ -125,8 +132,9 @@ public class ProcessDispatcher {
               + startEventDetails.processDefinitionId()
               + " with variables "
               + initiatorVariables);
-      // Probably there's no start form, so we use `startProcessInstanceById`.
-      processService.startProcess(startEventDetails.processDefinitionId(), initiatorVariables);
+      processInstanceId =
+          processService.startProcess(startEventDetails.processDefinitionId(), initiatorVariables);
+
     } else {
       Map<String, Object> allVariables = new HashMap<>(formVariables);
       allVariables.putAll(initiatorVariables);
@@ -135,12 +143,13 @@ public class ProcessDispatcher {
               + startEventDetails.processDefinitionId()
               + " with variables "
               + allVariables);
-
-      processService.startProcessWithForm(startEventDetails.processDefinitionId(), allVariables);
+      processInstanceId =
+          processService.startProcessWithForm(
+              startEventDetails.processDefinitionId(), allVariables);
     }
+    return userTaskDispatcher.showFollowupTask(ctx, processInstanceId, engineUserId);
   }
 
-  // TODO, rename because this doesn't always open a modal.
   private Response startProcessAction(BlockActionRequest req, ActionContext ctx) {
     String processDefinitionId =
         extractProcessDefinitionId(req.getPayload().getActions().get(0).getActionId());
@@ -162,8 +171,8 @@ public class ProcessDispatcher {
             })
         .orElseGet(
             () -> {
-              startProcess(startEvent, Collections.emptyMap(), req.getPayload().getUser().getId());
-              return ctx.ack(); // TODO, what can we do to show some interaction?
+              String engineUserId = userResolver.toEngineUserId(req.getPayload().getUser().getId());
+              return startProcess(ctx, startEvent, Collections.emptyMap(), engineUserId);
             });
   }
 
