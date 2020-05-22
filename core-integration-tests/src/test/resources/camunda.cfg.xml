@@ -13,7 +13,7 @@
 
     <property name="processEnginePlugins">
       <list>
-        <bean class="io.powertask.slack.usertasks.plugin.TaskListenerPlugin" />
+        <bean class="io.powertask.slack.camunda.plugin.TaskListenerPlugin" />
       </list>
     </property>
     <property name="jobExecutorActivate" value="false" />

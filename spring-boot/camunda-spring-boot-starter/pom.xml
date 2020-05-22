@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.powertask.slack</groupId>
+        <artifactId>powertask-slack-spring-boot</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>powertask-slack-camunda-spring-boot-starter</artifactId>
+    <name>Powertask Slack - Camunda Spring Boot Starter</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.powertask.slack</groupId>
+            <artifactId>powertask-slack-spring-boot-autoconfigure</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.powertask.slack</groupId>
+            <artifactId>powertask-slack-camunda-spring-boot-autoconfigure</artifactId>
+        </dependency>
+
+        <!-- We use the -webapp version, since we need servlets anyway for bolt -->
+        <dependency>
+            <groupId>org.camunda.bpm.springboot</groupId>
+            <artifactId>camunda-bpm-spring-boot-starter-webapp</artifactId>
+            <!-- From Camunda 7.13 onwards, we can start using ${version.camunda} here -->
+            <version>3.4.1</version>
+        </dependency>
+    </dependencies>
+    
+</project>

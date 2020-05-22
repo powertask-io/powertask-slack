@@ -13,6 +13,7 @@
  */
 package io.powertask.slack.modals.renderers.fieldrenderers;
 
+import static com.slack.api.model.block.composition.BlockCompositions.markdownText;
 import static com.slack.api.model.block.composition.BlockCompositions.option;
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,32 +22,26 @@ import com.slack.api.model.block.element.BlockElement;
 import com.slack.api.model.block.element.RadioButtonsElement;
 import com.slack.api.model.view.ViewState;
 import com.slack.api.model.view.ViewState.SelectedOption;
+import io.powertask.slack.formfields.BooleanField;
+import io.powertask.slack.formfields.ImmutableBooleanField;
 import io.vavr.control.Either;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.camunda.bpm.engine.impl.form.FormFieldImpl;
-import org.camunda.bpm.engine.impl.form.type.BooleanFormType;
-import org.camunda.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl;
 import org.junit.jupiter.api.Test;
 
 class BooleanFieldRendererTest {
 
-  private FormFieldImpl getBaseField(String id) {
-    FormFieldImpl formField = new FormFieldImpl();
-    formField.setType(new BooleanFormType());
-    formField.setValue(new PrimitiveTypeValueImpl.BooleanValueImpl(null));
-    formField.setId(id);
-    return formField;
+  private ImmutableBooleanField.Builder getBaseField(String id) {
+    return ImmutableBooleanField.builder().id(id).label(id).required(true);
   }
 
   @Test
   void renderBasicElement() {
     String id = "1234";
 
-    FormFieldImpl formField = getBaseField(id);
+    BooleanField formField = getBaseField(id).build();
 
     BlockElement renderedElement = new BooleanFieldRenderer(formField).renderElement();
 
@@ -65,23 +60,22 @@ class BooleanFieldRendererTest {
     String id = "1234";
     Boolean value = true;
 
-    FormFieldImpl formField = getBaseField(id);
-
-    formField.setValue(new PrimitiveTypeValueImpl.BooleanValueImpl(value));
-
-    Map<String, String> properties = new HashMap<>();
-    properties.put("slack-true-label", "Yep");
-    properties.put("slack-false-label", "Nope");
-    formField.setProperties(properties);
+    BooleanField formField =
+        getBaseField(id)
+            .value(Optional.of(value))
+            .trueLabel(Optional.of("Yep"))
+            .falseLabel(Optional.of("Nope"))
+            .build();
 
     BlockElement renderedElement = new BooleanFieldRenderer(formField).renderElement();
 
     BlockElement expectedElement =
         RadioButtonsElement.builder()
             .actionId("1234_boolean")
-            .initialOption(option(plainText("Yep"), "true"))
+            .initialOption(option(markdownText("Yep"), "true"))
             .options(
-                Arrays.asList(option(plainText("Yep"), "true"), option(plainText("Nope"), "false")))
+                Arrays.asList(
+                    option(markdownText("Yep"), "true"), option(markdownText("Nope"), "false")))
             .build();
 
     assertEquals(expectedElement, renderedElement);
@@ -90,7 +84,7 @@ class BooleanFieldRendererTest {
   @Test
   void extractValue() {
     String id = "1234";
-    FormFieldImpl formField = getBaseField(id);
+    BooleanField formField = getBaseField(id).build();
 
     SelectedOption selectedOption = new SelectedOption();
     selectedOption.setValue("true");
@@ -102,6 +96,6 @@ class BooleanFieldRendererTest {
 
     assertEquals(
         Either.right(Optional.of("true")),
-        new BooleanFieldRenderer(formField).extractValue(formField, fields));
+        new BooleanFieldRenderer(formField).extractValue(fields));
   }
 }

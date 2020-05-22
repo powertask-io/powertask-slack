@@ -18,7 +18,8 @@ import static com.slack.api.model.block.composition.BlockCompositions.markdownTe
 import static com.slack.api.model.block.composition.BlockCompositions.plainText;
 import static com.slack.api.model.block.element.BlockElements.asElements;
 import static com.slack.api.model.block.element.BlockElements.button;
-import static io.powertask.slack.modals.renderers.fieldrenderers.AbstractFieldRenderer.PROPERTY_SLACK_HINT;
+import static io.powertask.slack.usertasks.renderers.MessageComponents.getDescriptionBlocks;
+import static io.powertask.slack.usertasks.renderers.MessageComponents.getVariablesBlocks;
 
 import com.slack.api.RequestConfigurator;
 import com.slack.api.app_backend.interactive_components.payload.BlockActionPayload;
@@ -28,13 +29,12 @@ import com.slack.api.bolt.request.builtin.BlockActionRequest;
 import com.slack.api.bolt.response.Response;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
 import com.slack.api.model.block.LayoutBlock;
-import io.powertask.slack.CamundaPropertiesResolver;
-import io.powertask.slack.FieldInformation;
-import io.powertask.slack.FormLikePropertiesBase;
-import io.powertask.slack.modals.renderers.fieldrenderers.AbstractFieldRenderer;
-import io.powertask.slack.modals.renderers.fieldrenderers.BooleanFieldRenderer;
-import io.powertask.slack.usertasks.TaskDetails;
-import io.powertask.slack.usertasks.TaskVariablesResolver;
+import com.slack.api.model.block.composition.BlockCompositions;
+import io.powertask.slack.Form;
+import io.powertask.slack.FormField;
+import io.powertask.slack.TaskService;
+import io.powertask.slack.formfields.BooleanField;
+import io.powertask.slack.usertasks.Task;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,84 +43,75 @@ import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.camunda.bpm.engine.ProcessEngine;
-import org.camunda.bpm.engine.form.FormData;
-import org.camunda.bpm.engine.form.FormField;
-import org.camunda.bpm.engine.form.TaskFormData;
-import org.camunda.bpm.engine.impl.form.type.BooleanFormType;
 
-public class SingleMessageTaskRenderer extends FormLikePropertiesBase<TaskDetails>
-    implements TaskRenderer {
+public class SingleMessageTaskRenderer implements TaskRenderer {
 
   private static final Pattern taskIdPattern =
       Pattern.compile("^single-message-task/([a-z0-9\\-]+)/[0-9]+$");
   protected final BiFunction<TaskResult, Context, Response> submissionListener;
 
+  private final TaskService taskService;
+
   public SingleMessageTaskRenderer(
-      BiFunction<TaskResult, Context, Response> submissionListener, ProcessEngine processEngine) {
-    super(
-        new CamundaPropertiesResolver<>(processEngine.getRepositoryService()),
-        new TaskVariablesResolver(processEngine.getTaskService()));
+      TaskService taskService, BiFunction<TaskResult, Context, Response> submissionListener) {
+    this.taskService = taskService;
     this.submissionListener = submissionListener;
   }
 
   @Override
   // TODO, we could render more forms types inline, like an enum-only form as multiple buttons
-  public boolean canRender(TaskFormData taskFormData) {
-    List<FormField> fields = taskFormData.getFormFields();
+  public boolean canRender(Form form) {
+    List<FormField<?>> fields = form.fields();
     return fields.size() == 1
-        && (fields.get(0).getType() instanceof BooleanFormType)
-        && FieldInformation.hasConstraint(fields.get(0), AbstractFieldRenderer.CONSTRAINT_REQUIRED);
+        && (fields.get(0) instanceof BooleanField)
+        && fields.get(0).required();
   }
 
   @Override
   public RequestConfigurator<ChatPostMessageRequest.ChatPostMessageRequestBuilder> initialMessage(
-      TaskDetails task, FormData formData) {
-    FormField formField = formData.getFormFields().get(0);
+      Task task, Form form) {
+    BooleanField formField = (BooleanField) form.fields().get(0);
 
     List<LayoutBlock> blocks = new ArrayList<>();
     blocks.addAll(messageBlocks(task));
     blocks.addAll(getDescriptionBlocks(task));
-    blocks.addAll(getVariablesBlocks(task));
+    blocks.addAll(getVariablesBlocks(taskService, task));
     blocks.add(inlineFormHeader(formField));
     blocks.add(inlineForm(task, formField));
 
-    return req -> req.text("Task: " + task.getName()).blocks(blocks);
+    return req -> req.text("Task: " + task.name()).blocks(blocks);
   }
 
-  private LayoutBlock inlineFormHeader(FormField formField) {
-    String hintMarkdown =
-        FieldInformation.getStringProperty(formField, PROPERTY_SLACK_HINT)
-            .map(hint -> "\n_" + hint + "_")
-            .orElse("");
+  private LayoutBlock inlineFormHeader(FormField<?> formField) {
+    String hintMarkdown = formField.hint().map(hint -> "\n_" + hint + "_").orElse("");
 
     return section(
-        section -> section.text(markdownText("*" + formField.getLabel() + "*\n" + hintMarkdown)));
+        section -> section.text(markdownText("*" + formField.label() + "*\n" + hintMarkdown)));
   }
 
-  private LayoutBlock inlineForm(TaskDetails task, FormField formField) {
+  private LayoutBlock inlineForm(Task task, BooleanField formField) {
     return actions(
         actions ->
             actions
-                .blockId(formField.getId())
+                .blockId(formField.id())
                 .elements(
                     asElements(
                         button(
                             b ->
-                                b.actionId(generateActionId(task.getId(), 1))
+                                b.actionId(generateActionId(task.id(), 1))
                                     .text(
-                                        FieldInformation.getPlainTextProperty(
-                                                formField,
-                                                BooleanFieldRenderer.PROPERTY_SLACK_TRUE_LABEL)
+                                        formField
+                                            .trueLabel()
+                                            .map(BlockCompositions::plainText)
                                             .orElse(plainText("Yes")))
                                     .value("true")),
                         button(
                             b ->
-                                b.actionId(generateActionId(task.getId(), 2))
+                                b.actionId(generateActionId(task.id(), 2))
                                     .text(
-                                        FieldInformation.getPlainTextProperty(
-                                                formField,
-                                                BooleanFieldRenderer.PROPERTY_SLACK_FALSE_LABEL)
+                                        formField
+                                            .falseLabel()
+                                            .map(BlockCompositions::plainText)
                                             .orElse(plainText("No")))
                                     .value("false")))));
   }
@@ -132,11 +123,10 @@ public class SingleMessageTaskRenderer extends FormLikePropertiesBase<TaskDetail
                 BlockActionPayload.Action::getBlockId, BlockActionPayload.Action::getValue));
   }
 
-  private List<LayoutBlock> messageBlocks(TaskDetails taskDetails) {
+  private List<LayoutBlock> messageBlocks(Task task) {
     return asBlocks(
         section(
-            section ->
-                section.text(markdownText("You have a new task:* " + taskDetails.getName() + "*"))),
+            section -> section.text(markdownText("You have a new task:* " + task.name() + "*"))),
         divider());
   }
 
@@ -147,6 +137,11 @@ public class SingleMessageTaskRenderer extends FormLikePropertiesBase<TaskDetail
             .pattern(taskIdPattern)
             .blockActionHandler(this::handleBlockAction)
             .build());
+  }
+
+  @Override
+  public List<ViewSubmissionRegistration> viewSubmissionRegistrations() {
+    return Collections.emptyList();
   }
 
   public Response handleBlockAction(BlockActionRequest req, ActionContext ctx) {

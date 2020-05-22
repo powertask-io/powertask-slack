@@ -19,8 +19,6 @@ import com.slack.api.bolt.App;
 import com.slack.api.methods.response.views.ViewsPublishResponse;
 import com.slack.api.model.event.AppHomeOpenedEvent;
 import com.slack.api.model.view.View;
-import java.util.Optional;
-import org.immutables.value.Value;
 
 // First step: Process types
 // - Process without a form, just show feedback that the form was started. And maybe for who the
@@ -34,15 +32,6 @@ public class AppHome {
 
   private final App app;
   private final ProcessDispatcher processDispatcher;
-
-  @Value.Immutable
-  interface Process {
-    String name();
-
-    String id();
-
-    Optional<String> description();
-  }
 
   public AppHome(App app, ProcessDispatcher processDispatcher) {
     this.app = app;

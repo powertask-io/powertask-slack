@@ -29,23 +29,19 @@ import com.slack.api.methods.request.chat.ChatPostMessageRequest;
 import com.slack.api.model.block.ActionsBlock;
 import com.slack.api.model.block.element.ButtonElement;
 import com.slack.api.model.view.ViewState;
-import io.powertask.slack.CamundaPropertiesResolver;
-import io.powertask.slack.FormLikePropertiesBase;
+import io.powertask.slack.Form;
+import io.powertask.slack.FormService;
+import io.powertask.slack.TaskService;
 import io.powertask.slack.modals.renderers.ModalRenderer;
-import io.powertask.slack.usertasks.TaskDetails;
-import io.powertask.slack.usertasks.TaskVariablesResolver;
+import io.powertask.slack.usertasks.Task;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.camunda.bpm.engine.ProcessEngine;
-import org.camunda.bpm.engine.form.FormData;
-import org.camunda.bpm.engine.form.TaskFormData;
-import org.camunda.bpm.engine.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ModalTaskRenderer extends FormLikePropertiesBase<TaskDetails> implements TaskRenderer {
+public class ModalTaskRenderer implements TaskRenderer {
 
   private static final Logger logger = LoggerFactory.getLogger(ModalTaskRenderer.class);
 
@@ -54,44 +50,45 @@ public class ModalTaskRenderer extends FormLikePropertiesBase<TaskDetails> imple
   private static final Pattern taskSubmitPattern =
       Pattern.compile("^modal-task-submit/([a-z0-9\\-]+)$");
   protected final BiFunction<TaskResult, Context, Response> submissionListener;
-  private final ProcessEngine processEngine;
 
   private final ModalRenderer modalRenderer;
+  private final FormService formService;
+  private final TaskService taskService;
 
   public ModalTaskRenderer(
-      BiFunction<TaskResult, Context, Response> submissionListener, ProcessEngine processEngine) {
-    super(
-        new CamundaPropertiesResolver<>(processEngine.getRepositoryService()),
-        new TaskVariablesResolver(processEngine.getTaskService()));
+      TaskService taskService,
+      FormService formService,
+      BiFunction<TaskResult, Context, Response> submissionListener) {
+    super();
 
+    this.taskService = taskService;
+    this.formService = formService;
     this.submissionListener = submissionListener;
-    this.processEngine = processEngine;
-    this.modalRenderer = new ModalRenderer(propertiesResolver, variablesResolver);
+    this.modalRenderer = new ModalRenderer(taskService);
   }
 
   @Override
-  public boolean canRender(TaskFormData formData) {
-    return modalRenderer.canRender(formData);
+  public boolean canRender(Form form) {
+    return modalRenderer.canRender(form);
   }
 
   @Override
   public RequestConfigurator<ChatPostMessageRequest.ChatPostMessageRequestBuilder> initialMessage(
-      TaskDetails taskDetails, FormData formData) {
+      Task task, Form form) {
     return req ->
-        req.text("Task: " + taskDetails.getName())
+        req.text("Task: " + task.name())
             .blocks(
                 Arrays.asList(
                     section(
                         section ->
                             section.text(
-                                markdownText(
-                                    "You have a new task:\n*" + taskDetails.getName() + "*"))),
+                                markdownText("You have a new task:\n*" + task.name() + "*"))),
                     ActionsBlock.builder()
                         .blockId("accept")
                         .elements(
                             Collections.singletonList(
                                 ButtonElement.builder()
-                                    .actionId(generateOpenModalActionId(taskDetails.getId()))
+                                    .actionId(generateOpenModalActionId(task.id()))
                                     .text(plainText("Open"))
                                     .build()))
                         .build()));
@@ -129,22 +126,25 @@ public class ModalTaskRenderer extends FormLikePropertiesBase<TaskDetails> imple
         req.getPayload().getView().getState().getValues();
 
     String taskId = extractTaskId(taskSubmitPattern, req.getPayload().getView().getCallbackId());
-    FormData formData = processEngine.getFormService().getTaskFormData(taskId);
+    Form formData =
+        formService
+            .taskForm(taskId)
+            // TODO, make nicer
+            .orElseThrow(() -> new RuntimeException("No form for this task!"));
 
     Map<String, Object> taskVariables = new HashMap<>();
     Map<String, String> errors = new HashMap<>();
     formData
-        .getFormFields()
+        .fields()
         .forEach(
             field ->
                 modalRenderer
                     .getRenderer(field)
-                    .extractValue(field, viewStateValues.get(field.getId()))
+                    .extractValue(viewStateValues.get(field.id()))
                     .peek(
                         optionalValue ->
-                            optionalValue.ifPresent(
-                                value -> taskVariables.put(field.getId(), value)))
-                    .peekLeft(error -> errors.put(field.getId(), error)));
+                            optionalValue.ifPresent(value -> taskVariables.put(field.id(), value)))
+                    .peekLeft(error -> errors.put(field.id(), error)));
 
     if (!errors.isEmpty()) {
       return ctx.ackWithErrors(errors);
@@ -161,12 +161,18 @@ public class ModalTaskRenderer extends FormLikePropertiesBase<TaskDetails> imple
   private Response openHandler(BlockActionRequest req, ActionContext ctx) {
     String actionId = req.getPayload().getActions().get(0).getActionId();
     String taskId = extractTaskId(taskOpenPattern, actionId);
-    TaskDetails task = getTaskById(taskId);
-    FormData formData = processEngine.getFormService().getTaskFormData(task.getId());
-    return openModal(ctx, task, formData);
+    Task task = taskService.taskById(taskId);
+    Form form =
+        formService
+            .taskForm(taskId)
+            .orElseThrow(
+                () ->
+                    // TODO, make nicer.
+                    new RuntimeException("No form for this task!"));
+    return openModal(ctx, task, form);
   }
 
-  public Response openModal(ActionContext ctx, TaskDetails task, FormData formData) {
+  public Response openModal(ActionContext ctx, Task task, Form form) {
     requireOk(
         () ->
             ctx.client()
@@ -175,21 +181,18 @@ public class ModalTaskRenderer extends FormLikePropertiesBase<TaskDetails> imple
                         r.triggerId(ctx.getTriggerId())
                             .view(
                                 modalRenderer.buildModal(
-                                    task, formData, generateSubmitModalActionId(task.getId())))));
+                                    task, form, generateSubmitModalActionId(task.id())))));
 
     return ctx.ack();
   }
 
-  public Response updateModal(
-      ViewSubmissionContext ctx, TaskDetails followUpTask, TaskFormData formData) {
+  public Response updateModal(ViewSubmissionContext ctx, Task followUpTask, Form form) {
     return ctx.ack(
         r ->
             r.responseAction("update")
                 .view(
                     modalRenderer.buildModal(
-                        followUpTask,
-                        formData,
-                        generateSubmitModalActionId(followUpTask.getId()))));
+                        followUpTask, form, generateSubmitModalActionId(followUpTask.id()))));
   }
 
   public String extractTaskId(Pattern pattern, String identifier) {
@@ -199,10 +202,5 @@ public class ModalTaskRenderer extends FormLikePropertiesBase<TaskDetails> imple
     } else {
       throw new IllegalArgumentException("Invalid action id.");
     }
-  }
-
-  protected TaskDetails getTaskById(String taskId) {
-    Task task = processEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
-    return TaskDetails.of(task);
   }
 }

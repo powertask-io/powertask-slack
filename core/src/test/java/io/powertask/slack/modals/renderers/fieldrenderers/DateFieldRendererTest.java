@@ -20,38 +20,33 @@ import com.slack.api.model.block.element.BlockElement;
 import com.slack.api.model.block.element.DatePickerElement;
 import com.slack.api.model.view.ViewState;
 import com.slack.api.model.view.ViewState.SelectedOption;
+import io.powertask.slack.formfields.DateField;
+import io.powertask.slack.formfields.ImmutableDateField;
 import io.vavr.control.Either;
+import java.time.LocalDate;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.camunda.bpm.engine.impl.form.FormFieldImpl;
-import org.camunda.bpm.engine.impl.form.type.DateFormType;
-import org.camunda.bpm.engine.variable.impl.value.PrimitiveTypeValueImpl;
 import org.junit.jupiter.api.Test;
 
 class DateFieldRendererTest {
 
   static String camundaDatePattern = "dd/MM/yyyy";
 
-  private FormFieldImpl getBaseField(String id) {
-    FormFieldImpl formField = new FormFieldImpl();
-    formField.setType(new DateFormType(camundaDatePattern));
-    formField.setValue(new PrimitiveTypeValueImpl.DateValueImpl(null));
-    formField.setId(id);
-    return formField;
+  private ImmutableDateField.Builder getBaseField(String id) {
+    return ImmutableDateField.builder().id(id).label(id).required(true);
   }
 
   @Test
   void renderBasicElement() {
     String id = "1234";
 
-    FormFieldImpl formField = getBaseField(id);
+    DateField formField = getBaseField(id).build();
 
     BlockElement renderedElement = new DateFieldRenderer(formField).renderElement();
 
     BlockElement expectedElement =
-        DatePickerElement.builder().actionId(formField.getId() + "_date").build();
+        DatePickerElement.builder().actionId(formField.id() + "_date").build();
 
     assertEquals(expectedElement, renderedElement);
   }
@@ -59,24 +54,18 @@ class DateFieldRendererTest {
   @Test
   void renderFullOptionsElement() {
     String id = "1234";
-    String camundaDatePattern = "dd/MM/yyyy";
     String placeholder = "placeholder";
-    String initialDate = "21/03/2010";
+    LocalDate initialDate = LocalDate.of(2010, 3, 21);
 
-    FormFieldImpl formField = getBaseField(id);
-    formField.setValue(new PrimitiveTypeValueImpl.StringValueImpl(initialDate));
-
-    Map<String, String> properties = new HashMap<>();
-    properties.put("slack-placeholder", placeholder);
-    formField.setProperties(properties);
+    DateField formField = getBaseField(id).value(initialDate).placeholder(placeholder).build();
 
     BlockElement renderedElement = new DateFieldRenderer(formField).renderElement();
 
     BlockElement expectedElement =
         DatePickerElement.builder()
-            .actionId(formField.getId() + "_date")
+            .actionId(formField.id() + "_date")
             .placeholder(plainText(placeholder))
-            .initialDate("2010-03-21") // Note the difference in format from Camunda.
+            .initialDate("2010-03-21")
             .build();
 
     assertEquals(expectedElement, renderedElement);
@@ -85,7 +74,7 @@ class DateFieldRendererTest {
   @Test
   void extractValue() {
     String id = "1234";
-    FormFieldImpl formField = getBaseField(id);
+    DateField formField = getBaseField(id).build();
 
     SelectedOption selectedOption = new SelectedOption();
     selectedOption.setValue("true");
@@ -96,7 +85,7 @@ class DateFieldRendererTest {
     Map<String, ViewState.Value> fields = Collections.singletonMap("1234_date", value);
 
     assertEquals(
-        Either.right(Optional.of("15/03/2010")),
-        new DateFieldRenderer(formField).extractValue(formField, fields));
+        Either.right(Optional.of(LocalDate.of(2010, 3, 15))),
+        new DateFieldRenderer(formField).extractValue(fields));
   }
 }

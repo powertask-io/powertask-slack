@@ -21,6 +21,9 @@ import com.slack.api.bolt.App;
 import com.slack.api.bolt.servlet.SlackAppServlet;
 import com.slack.api.methods.AsyncMethodsClient;
 import com.slack.api.methods.MethodsClient;
+import io.powertask.slack.FormService;
+import io.powertask.slack.ProcessService;
+import io.powertask.slack.TaskService;
 import io.powertask.slack.apphome.AppHome;
 import io.powertask.slack.apphome.ProcessDispatcher;
 import io.powertask.slack.identity.EmailUserResolver;
@@ -28,8 +31,6 @@ import io.powertask.slack.identity.SlackIdUserResolver;
 import io.powertask.slack.identity.UserResolver;
 import io.powertask.slack.servicetasks.SlackService;
 import io.powertask.slack.usertasks.UserTaskDispatcher;
-import io.powertask.slack.usertasks.plugin.TaskListenerPlugin;
-import org.camunda.bpm.engine.ProcessEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -50,19 +51,14 @@ public class PowertaskSlackAutoConfiguration {
   }
 
   @Bean
-  // TODO, should this be conditional / configurable?
-  TaskListenerPlugin taskListenerPlugin() {
-    return new TaskListenerPlugin();
-  }
-
-  @Bean
   @ConditionalOnMissingBean(UserTaskDispatcher.class)
   public UserTaskDispatcher userTaskDispatcher(
       AsyncMethodsClient asyncMethodsClient,
       UserResolver userResolver,
       App app,
-      ProcessEngine processEngine) {
-    return new UserTaskDispatcher(asyncMethodsClient, userResolver, app, processEngine);
+      TaskService taskService,
+      FormService formService) {
+    return new UserTaskDispatcher(asyncMethodsClient, userResolver, app, taskService, formService);
   }
 
   @Bean
@@ -108,8 +104,12 @@ public class PowertaskSlackAutoConfiguration {
       havingValue = "true",
       matchIfMissing = true)
   public ProcessDispatcher processDispatcher(
-      App app, ProcessEngine processEngine, UserResolver userResolver) {
-    return new ProcessDispatcher(app, processEngine, userResolver);
+      App app,
+      ProcessService processEngine,
+      TaskService taskService,
+      FormService formService,
+      UserResolver userResolver) {
+    return new ProcessDispatcher(app, processEngine, taskService, formService, userResolver);
   }
 
   @Bean

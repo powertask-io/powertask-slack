@@ -3,4 +3,3 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 io.powertask.slack.spring.SlackAutoConfiguration,\
 io.powertask.slack.spring.BoltAutoConfiguration,\
 io.powertask.slack.spring.PowertaskSlackAutoConfiguration
-

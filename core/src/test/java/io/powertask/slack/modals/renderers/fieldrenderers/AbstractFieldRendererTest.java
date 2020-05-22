@@ -20,50 +20,30 @@ import com.slack.api.model.block.InputBlock;
 import com.slack.api.model.block.UnknownBlockElement;
 import com.slack.api.model.block.element.BlockElement;
 import com.slack.api.model.view.ViewState;
+import io.powertask.slack.FormField;
+import io.powertask.slack.formfields.ImmutableStringField;
 import io.vavr.control.Either;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.camunda.bpm.engine.form.FormField;
-import org.camunda.bpm.engine.form.FormFieldValidationConstraint;
-import org.camunda.bpm.engine.impl.form.FormFieldImpl;
-import org.camunda.bpm.engine.impl.form.FormFieldValidationConstraintImpl;
-import org.camunda.bpm.engine.impl.form.type.StringFormType;
 import org.junit.jupiter.api.Test;
 
 public class AbstractFieldRendererTest {
 
   private static final BlockElement inner = new UnknownBlockElement("foo");
 
-  static class MyFieldRenderer extends AbstractFieldRenderer {
-    protected MyFieldRenderer(FormField formField) {
-      super(formField);
-    }
-
-    protected BlockElement renderElement() {
-      return inner;
-    }
-
-    public Either<String, Optional<Object>> extractValue(
-        FormField formField, Map<String, ViewState.Value> viewState) {
-      return null;
-    }
-  }
-
   @Test
   public void renderBasicBlock() {
     String label = "The Label";
+    String id = "foo";
 
-    FormFieldImpl formField = new FormFieldImpl();
-    formField.setType(new StringFormType());
-    formField.setLabel(label);
+    FormField<String> formField =
+        ImmutableStringField.builder().id(id).label(label).required(false).multiline(false).build();
 
-    InputBlock inputBlock = new MyFieldRenderer(formField).render(formField);
+    InputBlock inputBlock = new MyFieldRenderer(formField).render();
 
     InputBlock expectedInputBlock =
         InputBlock.builder()
-            .blockId(formField.getId())
+            .blockId(formField.id())
             .optional(true)
             .label(plainText(label))
             .element(inner)
@@ -74,26 +54,24 @@ public class AbstractFieldRendererTest {
 
   @Test
   public void renderFullOptionsBlock() {
+    String id = "foo";
     String label = "The Label";
     String hint = "The Hint";
 
-    FormFieldImpl formField = new FormFieldImpl();
-    formField.setType(new StringFormType());
-    formField.setLabel(label);
+    FormField<String> formField =
+        ImmutableStringField.builder()
+            .id(id)
+            .label(label)
+            .hint(Optional.of(hint))
+            .required(true)
+            .multiline(false)
+            .build();
 
-    Map<String, String> properties = new HashMap<>();
-    properties.put("slack-hint", hint);
-    formField.setProperties(properties);
-
-    ArrayList<FormFieldValidationConstraint> constraints = new ArrayList<>();
-    constraints.add(new FormFieldValidationConstraintImpl("required", "true"));
-    formField.setValidationConstraints(constraints);
-
-    InputBlock inputBlock = new MyFieldRenderer(formField).render(formField);
+    InputBlock inputBlock = new MyFieldRenderer(formField).render();
 
     InputBlock expectedInputBlock =
         InputBlock.builder()
-            .blockId(formField.getId())
+            .blockId(formField.id())
             .optional(false)
             .hint(plainText(hint))
             .label(plainText(label))
@@ -101,5 +79,20 @@ public class AbstractFieldRendererTest {
             .build();
 
     assertEquals(expectedInputBlock, inputBlock);
+  }
+
+  static class MyFieldRenderer extends AbstractFieldRenderer<String> {
+
+    protected MyFieldRenderer(FormField<String> formField) {
+      super(formField);
+    }
+
+    protected BlockElement renderElement() {
+      return inner;
+    }
+
+    public Either<String, Optional<Object>> extractValue(Map<String, ViewState.Value> viewState) {
+      return null;
+    }
   }
 }

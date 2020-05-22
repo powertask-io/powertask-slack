@@ -13,53 +13,40 @@
  */
 package io.powertask.slack.modals.renderers.fieldrenderers;
 
+import com.slack.api.model.block.composition.BlockCompositions;
 import com.slack.api.model.block.element.BlockElement;
 import com.slack.api.model.block.element.PlainTextInputElement;
 import com.slack.api.model.view.ViewState;
-import io.powertask.slack.FieldInformation;
+import io.powertask.slack.formfields.StringField;
 import io.vavr.control.Either;
 import java.util.Map;
 import java.util.Optional;
-import org.camunda.bpm.engine.form.FormField;
-import org.camunda.bpm.engine.variable.value.StringValue;
 
-public class StringFieldRenderer extends AbstractFieldRenderer {
+public class StringFieldRenderer extends AbstractFieldRenderer<String> {
 
   private static final String FIELD_SUFFIX = "_text";
-  private static final String PROPERTY_SLACK_MULTILINE = "slack-multiline";
-  private static final String CONSTRAINT_MINLENGTH = "minlength";
-  private static final String CONSTRAINT_MAXLENGTH = "maxlength";
+  private final StringField stringField;
 
-  public StringFieldRenderer(FormField formField) {
+  public StringFieldRenderer(StringField formField) {
     super(formField);
+    stringField = formField;
   }
 
   @Override
   protected BlockElement renderElement() {
     return PlainTextInputElement.builder()
-        .initialValue(((StringValue) formField.getValue()).getValue())
-        .multiline(
-            FieldInformation.getBooleanProperty(formField, PROPERTY_SLACK_MULTILINE).orElse(false))
-        .minLength(
-            FieldInformation.getLongConstraint(formField, CONSTRAINT_MINLENGTH)
-                // TODO: The int can overflow...
-                .map(Long::intValue)
-                .orElse(null))
-        .maxLength(
-            FieldInformation.getLongConstraint(formField, CONSTRAINT_MAXLENGTH)
-                .map(Long::intValue)
-                .orElse(null))
-        .placeholder(
-            FieldInformation.getPlainTextProperty(formField, PROPERTY_SLACK_PLACEHOLDER)
-                .orElse(null))
-        .actionId(formField.getId() + FIELD_SUFFIX)
+        .placeholder(stringField.placeholder().map(BlockCompositions::plainText).orElse(null))
+        .initialValue(stringField.value().orElse(null))
+        .multiline(stringField.multiline())
+        .minLength(stringField.minLength().orElse(null))
+        .maxLength(stringField.maxLength().orElse(null))
+        .actionId(formField.id() + FIELD_SUFFIX)
         .build();
   }
 
   @Override
-  public Either<String, Optional<Object>> extractValue(
-      FormField formField, Map<String, ViewState.Value> viewState) {
+  public Either<String, Optional<Object>> extractValue(Map<String, ViewState.Value> viewState) {
     return Either.right(
-        Optional.ofNullable(viewState.get(formField.getId() + FIELD_SUFFIX).getValue()));
+        Optional.ofNullable(viewState.get(formField.id() + FIELD_SUFFIX).getValue()));
   }
 }
