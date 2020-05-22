@@ -14,11 +14,11 @@
 package io.powertask.slack;
 
 import static org.assertj.core.api.Assertions.entry;
-import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import org.assertj.core.api.IntegerAssert;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.engine.test.assertions.ProcessEngineTests;
@@ -64,6 +64,6 @@ public class SimpleApprovalTaskIT extends AbstractIntegrationTest {
     ProcessEngineTests.assertThat(processInstance).variables().contains(entry("approve", true));
 
     // TODO, we should figure out how to cut down on the 'authtest' and 'userslookupbyemail' calls.
-    assertEquals(6, wireMockServer.getAllServeEvents().size());
+    new IntegerAssert(wireMockServer.getAllServeEvents().size()).isBetween(5, 6);
   }
 }
