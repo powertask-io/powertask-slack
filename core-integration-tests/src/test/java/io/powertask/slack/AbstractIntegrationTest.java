@@ -39,6 +39,7 @@ import io.powertask.slack.camunda.PropertiesResolver;
 import io.powertask.slack.camunda.TaskMapper;
 import io.powertask.slack.camunda.plugin.TaskListenerPlugin;
 import io.powertask.slack.camunda.plugin.UserTaskDispatcherListener;
+import io.powertask.slack.identity.CachingResolver;
 import io.powertask.slack.identity.EmailUserResolver;
 import io.powertask.slack.identity.UserResolver;
 import io.powertask.slack.usertasks.UserTaskDispatcher;
@@ -126,7 +127,7 @@ public abstract class AbstractIntegrationTest {
             .build();
     app = new App(appConfig);
     requestParser = new SlackRequestParser(appConfig);
-    UserResolver userResolver = new EmailUserResolver(methodsClient);
+    UserResolver userResolver = new CachingResolver(new EmailUserResolver(methodsClient));
 
     PropertiesResolver propertiesResolver =
         new PropertiesResolver(processEngine.getRepositoryService());

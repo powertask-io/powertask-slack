@@ -26,6 +26,7 @@ import io.powertask.slack.ProcessService;
 import io.powertask.slack.TaskService;
 import io.powertask.slack.apphome.AppHome;
 import io.powertask.slack.apphome.ProcessDispatcher;
+import io.powertask.slack.identity.CachingResolver;
 import io.powertask.slack.identity.EmailUserResolver;
 import io.powertask.slack.identity.SlackIdUserResolver;
 import io.powertask.slack.identity.UserResolver;
@@ -85,7 +86,7 @@ public class PowertaskSlackAutoConfiguration {
       havingValue = "email",
       matchIfMissing = true)
   public UserResolver emailUserResolver(MethodsClient methodsClient) {
-    return new EmailUserResolver(methodsClient);
+    return new CachingResolver(new EmailUserResolver(methodsClient));
   }
 
   @Bean
