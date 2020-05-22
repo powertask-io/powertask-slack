@@ -98,8 +98,8 @@ public class MovieReviewIT extends AbstractIntegrationTest {
         .variables()
         .contains(entry("review", "Awesome movie. Wonderful scenery. Great goats."));
 
-    // TODO, we should figure out how to cut down on the 'authtest' and 'userslookupbyemail' calls.
-    // TODO, this also doesn't seem to be deterministic. We see 12 and 13 :S
-    new IntegerAssert(wireMockServer.getAllServeEvents().size()).isBetween(12, 13);
+    // TODO, we should figure out how to cut down on the 'authtest' calls. See
+    //   https://github.com/slackapi/java-slack-sdk/issues/468
+    new IntegerAssert(wireMockServer.getAllServeEvents().size()).isBetween(9, 10);
   }
 }

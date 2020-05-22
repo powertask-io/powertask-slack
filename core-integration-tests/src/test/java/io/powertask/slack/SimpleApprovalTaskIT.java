@@ -63,7 +63,8 @@ public class SimpleApprovalTaskIT extends AbstractIntegrationTest {
     ProcessEngineTests.assertThat(processInstance).isEnded();
     ProcessEngineTests.assertThat(processInstance).variables().contains(entry("approve", true));
 
-    // TODO, we should figure out how to cut down on the 'authtest' and 'userslookupbyemail' calls.
-    new IntegerAssert(wireMockServer.getAllServeEvents().size()).isBetween(5, 6);
+    // TODO, we should figure out how to cut down on the 'authtest'' calls.
+    //  See https://github.com/slackapi/java-slack-sdk/issues/468
+    new IntegerAssert(wireMockServer.getAllServeEvents().size()).isBetween(4, 6);
   }
 }
