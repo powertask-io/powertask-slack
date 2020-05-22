@@ -42,11 +42,6 @@ public class StartEventMapper {
       }
 
       @Override
-      public String getProcessDefinitionElementId() {
-        return startEvent.getId();
-      }
-
-      @Override
       public String title() {
         return propertiesResolver
             .getProperty(processDefinitionId, startEvent.getId(), PROPERTY_SLACK_TITLE)

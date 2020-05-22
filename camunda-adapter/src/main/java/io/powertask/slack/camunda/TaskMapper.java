@@ -75,11 +75,6 @@ public class TaskMapper {
       }
 
       @Override
-      public String getProcessDefinitionElementId() {
-        return task.getTaskDefinitionKey();
-      }
-
-      @Override
       public String processInstanceId() {
         return task.getProcessInstanceId();
       }
@@ -147,11 +142,6 @@ public class TaskMapper {
       @Override
       public String processDefinitionId() {
         return delegateTask.getProcessDefinitionId();
-      }
-
-      @Override
-      public String getProcessDefinitionElementId() {
-        return delegateTask.getTaskDefinitionKey();
       }
 
       @Override

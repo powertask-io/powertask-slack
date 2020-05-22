@@ -46,7 +46,7 @@ class FutureOpsTest {
   }
 
   @Test
-  public void sequenceFailing() throws ExecutionException, InterruptedException {
+  public void sequenceFailing() {
     ExecutionException e =
         Assertions.assertThrows(
             ExecutionException.class,
@@ -54,7 +54,7 @@ class FutureOpsTest {
                 FutureOps.sequence(
                         Arrays.asList(
                             CompletableFuture.completedFuture("foo"),
-                            CompletableFuture.<String>supplyAsync(
+                            CompletableFuture.supplyAsync(
                                 () -> {
                                   throw new RuntimeException("BOOM!");
                                 }),
@@ -78,7 +78,7 @@ class FutureOpsTest {
   }
 
   @Test
-  public void traverseFailing() throws ExecutionException, InterruptedException {
+  public void traverseFailing() {
     ExecutionException e =
         Assertions.assertThrows(
             ExecutionException.class,
@@ -113,7 +113,7 @@ class FutureOpsTest {
   }
 
   @Test
-  public void collectorFailing() throws ExecutionException, InterruptedException {
+  public void collectorFailing() {
     ExecutionException e =
         Assertions.assertThrows(
             ExecutionException.class,

@@ -58,7 +58,6 @@ class BooleanFieldRendererTest {
   @Test
   void renderFullOptionsElement() {
     String id = "1234";
-    boolean value = true;
 
     BooleanField formField =
         getBaseField(id).value(true).trueLabel("Yep").falseLabel("Nope").build();

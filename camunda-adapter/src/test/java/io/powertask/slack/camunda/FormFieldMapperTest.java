@@ -222,7 +222,7 @@ class FormFieldMapperTest {
         field);
   }
 
-  static String camundaDatePattern = "dd/MM/yyyy";
+  static final String camundaDatePattern = "dd/MM/yyyy";
 
   private FormFieldImpl getBaseDateField(String id, String label) {
     FormFieldImpl formField = new FormFieldImpl();
