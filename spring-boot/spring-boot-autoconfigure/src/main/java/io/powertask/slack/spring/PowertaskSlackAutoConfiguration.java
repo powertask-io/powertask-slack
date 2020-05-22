@@ -109,8 +109,10 @@ public class PowertaskSlackAutoConfiguration {
       ProcessService processEngine,
       TaskService taskService,
       FormService formService,
+      UserTaskDispatcher userTaskDispatcher,
       UserResolver userResolver) {
-    return new ProcessDispatcher(app, processEngine, taskService, formService, userResolver);
+    return new ProcessDispatcher(
+        app, processEngine, taskService, formService, userTaskDispatcher, userResolver);
   }
 
   @Bean

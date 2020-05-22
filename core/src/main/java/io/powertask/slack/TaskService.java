@@ -21,7 +21,7 @@ import java.util.Set;
 public interface TaskService {
   Task taskById(String taskId);
 
-  Optional<Task> followUpTask(Task task);
+  Optional<Task> followUpTask(String processInstanceId, String assignee);
 
   Map<String, Object> getVariables(String taskId);
 
