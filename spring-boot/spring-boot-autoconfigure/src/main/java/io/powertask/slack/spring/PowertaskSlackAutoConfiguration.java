@@ -81,10 +81,7 @@ public class PowertaskSlackAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(UserResolver.class)
-  @ConditionalOnProperty(
-      value = POWERTASK_ENGINE_USERRESOLVER_USER_ID_TYPE,
-      havingValue = "email",
-      matchIfMissing = true)
+  @ConditionalOnProperty(value = POWERTASK_ENGINE_USERRESOLVER_USER_ID_TYPE, havingValue = "email")
   public UserResolver emailUserResolver(MethodsClient methodsClient) {
     return new CachingResolver(new EmailUserResolver(methodsClient));
   }
@@ -93,7 +90,8 @@ public class PowertaskSlackAutoConfiguration {
   @ConditionalOnMissingBean(UserResolver.class)
   @ConditionalOnProperty(
       value = POWERTASK_ENGINE_USERRESOLVER_USER_ID_TYPE,
-      havingValue = "slack-id")
+      havingValue = "slack-id",
+      matchIfMissing = true)
   public UserResolver slackIdUserResolver() {
     return new SlackIdUserResolver();
   }

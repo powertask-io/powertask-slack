@@ -31,6 +31,8 @@ slack:
   bolt:
     single-team-bot-token: ${slack.token}
     signing-secret: ${SLACK_SIGNING_SECRET}
+    client-id: ${SLACK_CLIENT_ID}
+    client-secret: ${SLACK_CLIENT_SECRET}
 camunda:
   bpm:
     admin-user:

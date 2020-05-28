@@ -13,6 +13,7 @@
  */
 package io.powertask.slack.examples.springboot;
 
+import io.powertask.slack.camunda.identitysync.IdentitySync;
 import java.util.Collections;
 import org.camunda.bpm.engine.ProcessEngine;
 import org.slf4j.Logger;
@@ -30,9 +31,11 @@ public class ExampleApp implements CommandLineRunner {
   String email;
 
   private final ProcessEngine processEngine;
+  private final IdentitySync identitySync;
 
-  public ExampleApp(ProcessEngine processEngine) {
+  public ExampleApp(ProcessEngine processEngine, IdentitySync identitySync) {
     this.processEngine = processEngine;
+    this.identitySync = identitySync;
   }
 
   public static void main(String... args) {
@@ -41,6 +44,8 @@ public class ExampleApp implements CommandLineRunner {
 
   @Override
   public void run(String... args) {
+    identitySync.sync();
+
     // Trigger a process :)
     logger.info("Triggering the movie-review process for Slack user with email:" + email);
     processEngine

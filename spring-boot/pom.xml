@@ -22,6 +22,7 @@
         <module>spring-boot-autoconfigure</module>
         <module>camunda-spring-boot-autoconfigure</module>
         <module>camunda-spring-boot-starter</module>
+        <module>camunda-spring-boot-starter-web-authentication</module>
     </modules>
 
     <dependencyManagement>
@@ -35,14 +36,5 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <profiles>
-        <profile>
-            <id>experimental</id>
-            <modules>
-                <module>spring-boot-starter-web-authentication</module>
-            </modules>
-        </profile>
-    </profiles>
 
 </project>
