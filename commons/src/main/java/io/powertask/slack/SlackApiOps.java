@@ -36,7 +36,11 @@ public class SlackApiOps {
         Optional.ofNullable(response.getWarning()).ifPresent(logger::warn);
         return response;
       } else {
-        throw new RuntimeException("Slack API response indicated an error: " + response.getError());
+        throw new RuntimeException(
+            "Slack API response indicated an error: "
+                + response.getError()
+                + " - "
+                + response.toString());
       }
     } catch (IOException | SlackApiException e) {
       throw new RuntimeException("Slack API call failure", e);

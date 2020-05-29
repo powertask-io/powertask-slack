@@ -73,7 +73,7 @@ public class SlackOAuthSecurityConfig extends WebSecurityConfigurerAdapter {
         .oauth2Client()
         .and()
         .csrf()
-        .ignoringAntMatchers("/slack/**");
+        .ignoringAntMatchers("/slack/**", "/api/**");
   }
   // @formatter:on
 
