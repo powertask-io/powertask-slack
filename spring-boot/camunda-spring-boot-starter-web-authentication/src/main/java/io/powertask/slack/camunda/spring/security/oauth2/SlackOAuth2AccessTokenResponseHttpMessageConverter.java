@@ -68,8 +68,14 @@ public class SlackOAuth2AccessTokenResponseHttpMessageConverter
       @NonNull Class<? extends OAuth2AccessTokenResponse> clazz, HttpInputMessage inputMessage)
       throws HttpMessageNotReadableException {
     try {
+
       SlackJsonResponse response =
           objectMapper.readValue(inputMessage.getBody(), SlackJsonResponse.class);
+
+      if (response.authedUser == null) {
+        throw new IOException("Json doesn't contain 'authed_user' field");
+      }
+
       return OAuth2AccessTokenResponse.withToken(response.authedUser.accessToken)
           .tokenType(TokenType.BEARER)
           .scopes(new HashSet<>(Arrays.asList(response.authedUser.scope.split(","))))

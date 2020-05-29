@@ -22,6 +22,7 @@ import io.powertask.slack.camunda.TaskMapper;
 import io.powertask.slack.camunda.identitysync.IdentitySync;
 import io.powertask.slack.camunda.plugin.TaskListenerPlugin;
 import io.powertask.slack.camunda.plugin.UserTaskDispatcherListener;
+import io.powertask.slack.camunda.spring.config.IdentitySyncProperties;
 import io.powertask.slack.usertasks.UserTaskDispatcher;
 import org.camunda.bpm.engine.FormService;
 import org.camunda.bpm.engine.IdentityService;
@@ -30,11 +31,13 @@ import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @Configuration
+@EnableConfigurationProperties(IdentitySyncProperties.class)
 public class CamundaAdapterAutoConfiguration {
 
   static final String POWERTASK_CAMUNDA_IDENTITY_SYNC_ENABLED =
@@ -85,7 +88,10 @@ public class CamundaAdapterAutoConfiguration {
       value = POWERTASK_CAMUNDA_IDENTITY_SYNC_ENABLED,
       havingValue = "true",
       matchIfMissing = true)
-  public IdentitySync identitySync(MethodsClient methodsClient, IdentityService identityService) {
-    return new IdentitySync(methodsClient, identityService);
+  public IdentitySync identitySync(
+      IdentitySyncProperties properties,
+      MethodsClient methodsClient,
+      IdentityService identityService) {
+    return new IdentitySync(properties, methodsClient, identityService);
   }
 }

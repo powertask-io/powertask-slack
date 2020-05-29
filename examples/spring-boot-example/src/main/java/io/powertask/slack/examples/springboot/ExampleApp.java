@@ -44,7 +44,7 @@ public class ExampleApp implements CommandLineRunner {
 
   @Override
   public void run(String... args) {
-    identitySync.sync();
+    identitySync.start();
 
     // Trigger a process :)
     logger.info("Triggering the movie-review process for Slack user with email:" + email);
