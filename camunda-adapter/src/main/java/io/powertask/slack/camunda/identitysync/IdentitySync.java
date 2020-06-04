@@ -283,7 +283,7 @@ public class IdentitySync {
                       !user.getName()
                           .equals(
                               "slackbot")) // For some reason slackbot doesn't have the isBot bit
-                                           // set.
+              // set.
               .collect(Collectors.toSet()));
       cursor = response.getResponseMetadata().getNextCursor();
     } while (!cursor.equals(""));

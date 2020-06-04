@@ -13,14 +13,15 @@
  */
 package io.powertask.slack.camunda.spring.security;
 
+import io.powertask.slack.camunda.spring.security.config.AuthenticationProperties;
 import io.powertask.slack.camunda.spring.security.oauth2.SlackOAuth2AccessTokenResponseHttpMessageConverter;
 import io.powertask.slack.camunda.spring.security.oauth2.SlackOAuth2AuthorizationRequestResolver;
 import io.powertask.slack.camunda.spring.security.oauth2.SlackOAuth2UserService;
-import io.powertask.slack.spring.config.BoltAppProperties;
 import java.util.Arrays;
 import java.util.Collections;
 import org.camunda.bpm.engine.rest.security.auth.ProcessEngineAuthenticationFilter;
 import org.camunda.bpm.webapp.impl.security.auth.ContainerBasedAuthenticationFilter;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,23 +40,25 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
+@EnableConfigurationProperties(AuthenticationProperties.class)
 public class SlackOAuthSecurityConfig extends WebSecurityConfigurerAdapter {
 
-  private final BoltAppProperties boltAppPropertiesProperties;
+  private final AuthenticationProperties authenticationProperties;
 
-  public SlackOAuthSecurityConfig(BoltAppProperties boltAppProperties) {
-    this.boltAppPropertiesProperties = boltAppProperties;
+  public SlackOAuthSecurityConfig(AuthenticationProperties authenticationProperties) {
+    this.authenticationProperties = authenticationProperties;
   }
 
   @Override
   // @formatter:off
   protected void configure(HttpSecurity http) throws Exception {
     ClientRegistrationRepository clientRegistrationRepository = clientRegistrationRepository();
-    http.authorizeRequests()
-        .antMatchers("/lib/**", "/slack/**")
-        .permitAll()
-        .anyRequest()
-        .authenticated()
+    http.requestMatcher(req ->
+        req.getRequestURI().startsWith("/login/") ||
+            req.getRequestURI().startsWith("/oauth2/") ||
+            req.getRequestURI().startsWith("/app/") ||
+            req.getRequestURI().startsWith("/api/"))
+        .authorizeRequests().anyRequest().authenticated()
         .and()
         .oauth2Login()
         .clientRegistrationRepository(clientRegistrationRepository)
@@ -67,45 +70,17 @@ public class SlackOAuthSecurityConfig extends WebSecurityConfigurerAdapter {
         .accessTokenResponseClient(accessTokenResponseClient())
         .and()
         .userInfoEndpoint()
-        .userService(new SlackOAuth2UserService())
-        .and()
-        .and()
-        .oauth2Client()
-        .and()
-        .csrf()
-        .ignoringAntMatchers("/slack/**", "/api/**");
+        .userService(new SlackOAuth2UserService());
   }
   // @formatter:on
-
-  // This is the configuration when done in application.yml, but we want to let users
-  // just enter their client-id and client-secret, so we make a custom provider.
-  //
-  // spring:
-  //  security:
-  //    oauth2:
-  //      client:
-  //        registration:
-  //          slack:
-  //            provider: slack
-  //            client-id: "xxxxx"
-  //            client-secret: "yyyyy"
-  //            client-authentication-method: post
-  //            authorization-grant-type: authorization_code
-  //            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-  //            client-name: Slack
-  //        provider:
-  //          slack:
-  //            authorization-uri: https://slack.com/oauth/v2/authorize
-  //            token-uri: https://slack.com/api/oauth.v2.access
-  //            user-info-uri: https://slack.com/api/users.identity
 
   private ClientRegistrationRepository clientRegistrationRepository() {
     ClientRegistration slack =
         ClientRegistration.withRegistrationId("slack")
-            .clientId(boltAppPropertiesProperties.getClientId())
-            .clientSecret(boltAppPropertiesProperties.getClientSecret())
+            .clientId(authenticationProperties.getClientId())
+            .clientSecret(authenticationProperties.getClientSecret())
             .clientAuthenticationMethod(
-                ClientAuthenticationMethod.POST) // TODO, shouldn't we use BASIC here?
+                ClientAuthenticationMethod.POST)
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .redirectUriTemplate("{baseUrl}/login/oauth2/code/{registrationId}")
             .clientName("Slack")
@@ -118,7 +93,7 @@ public class SlackOAuthSecurityConfig extends WebSecurityConfigurerAdapter {
 
   // Response client configured to use the SlackOAuth2AccessTokenResponseHttpMessageConverter
   private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
-      accessTokenResponseClient() {
+  accessTokenResponseClient() {
 
     SlackOAuth2AccessTokenResponseHttpMessageConverter tokenResponseHttpMessageConverter =
         new SlackOAuth2AccessTokenResponseHttpMessageConverter();
@@ -135,9 +110,10 @@ public class SlackOAuthSecurityConfig extends WebSecurityConfigurerAdapter {
     return accessTokenResponseClient;
   }
 
+
   @Bean
   public FilterRegistrationBean<ContainerBasedAuthenticationFilter>
-      containerBasedAuthenticationFilter() {
+  containerBasedAuthenticationFilter() {
     FilterRegistrationBean<ContainerBasedAuthenticationFilter> filterRegistration =
         new FilterRegistrationBean<>();
     filterRegistration.setFilter(new ContainerBasedAuthenticationFilter());
@@ -147,7 +123,7 @@ public class SlackOAuthSecurityConfig extends WebSecurityConfigurerAdapter {
             SpringSecurityAuthenticationProvider.class.getName()));
     // make sure the filter is registered after the Spring Security Filter Chain
     filterRegistration.setOrder(101);
-    filterRegistration.addUrlPatterns("/app/*");
+    filterRegistration.addUrlPatterns("/app/*", "/api/*");
     return filterRegistration;
   }
 }

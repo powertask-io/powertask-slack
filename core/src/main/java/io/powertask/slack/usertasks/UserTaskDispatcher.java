@@ -68,7 +68,7 @@ public class UserTaskDispatcher {
       App app,
       TaskService taskService,
       FormService formService) {
-    logger.info("Initializing SlackTaskProcessor");
+    logger.info("Initializing UserTaskDispatcher");
     this.asyncMethodsClient = asyncMethodsClient;
     this.userResolver = userResolver;
     this.taskService = taskService;
@@ -207,6 +207,7 @@ public class UserTaskDispatcher {
           Optional<TaskRenderer> selectedRenderer = selectRenderer(form);
 
           selectedRenderer.ifPresent(renderer -> executeRenderer(renderer, task, form));
+
           if (!selectedRenderer.isPresent()) {
             logger.info("No task renderer found for this type of task!");
           }
@@ -263,17 +264,26 @@ public class UserTaskDispatcher {
                 // so in theory a user could very quickly open the modal and respond to it, before
                 // this is saved.
                 // But it seems unlikely that it will happen.
-                messageRefs.thenAccept(
-                    refs -> {
-                      String serialized = wrapExceptions(() -> gson.toJson(refs));
-                      logger.debug(
-                          "Storing serialized message ref: "
-                              + serialized
-                              + " for task "
-                              + task.id());
+                messageRefs.handle(
+                    (r, t) -> {
+                      Optional.ofNullable(r)
+                          .ifPresent(
+                              refs -> {
+                                String serialized = wrapExceptions(() -> gson.toJson(refs));
+                                logger.debug(
+                                    "Storing serialized message ref: "
+                                        + serialized
+                                        + " for task "
+                                        + task.id());
 
-                      taskService.setVariable(
-                          task.id(), VARIABLE_POWERTASK_MESSAGEREFS, serialized);
+                                taskService.setVariable(
+                                    task.id(), VARIABLE_POWERTASK_MESSAGEREFS, serialized);
+                              });
+                      Optional.ofNullable(t)
+                          .ifPresent(
+                              throwable ->
+                                  logger.warn("Failed to notify user of a task!", throwable));
+                      return null;
                     });
               }
             });

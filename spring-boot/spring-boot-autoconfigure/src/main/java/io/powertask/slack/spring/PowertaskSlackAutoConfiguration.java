@@ -118,7 +118,12 @@ public class PowertaskSlackAutoConfiguration {
       value = POWERTASK_APP_HOME_ENABLED,
       havingValue = "true",
       matchIfMissing = true)
-  public AppHome appHome(App app, ProcessDispatcher processDispatcher) {
-    return new AppHome(app, processDispatcher);
+  public AppHome appHome(
+      App app,
+      ProcessService processService,
+      TaskService taskService,
+      UserResolver userResolver,
+      MethodsClient methodsClient) {
+    return new AppHome(app, processService, taskService, userResolver, methodsClient);
   }
 }

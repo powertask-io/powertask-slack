@@ -170,8 +170,8 @@ public class FormFieldMapper {
   }
 
   // Contrary to our own 'slack-' prefixed boolean properties, we don't check the config for true or
-  // false,
-  // merely the existence of the constraint is sufficient. This aligns with Camunda's Task List.
+  // false, merely the existence of the constraint is sufficient. This aligns with Camunda's Task
+  // List.
   public static boolean hasConstraint(
       org.camunda.bpm.engine.form.FormField formField, String name) {
     return getConstraint(formField, name).isPresent();
