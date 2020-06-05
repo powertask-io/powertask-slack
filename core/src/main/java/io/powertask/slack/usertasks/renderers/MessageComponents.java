@@ -60,16 +60,22 @@ public class MessageComponents {
             variableNames -> {
               Stream<Tuple2<String, Object>> variables =
                   variableNames
-                      .map(names -> {
-                        Map<String, Object> unsorted = taskService
-                            .getVariables(task.id(), new HashSet<>(names));
+                      .map(
+                          names -> {
+                            Map<String, Object> unsorted =
+                                taskService.getVariables(task.id(), new HashSet<>(names));
 
-                        return names.stream().flatMap(name ->
-                          Optional.ofNullable(unsorted.get(name)).map(v ->
-                              Stream.of(Tuple.of(name, v))).orElse(Stream.empty()));
-                      })
-                      .orElseGet(() -> taskService.getVariables(task.id()).entrySet().stream().map(e -> Tuple
-                          .of(e.getKey(), e.getValue())));
+                            return names.stream()
+                                .flatMap(
+                                    name ->
+                                        Optional.ofNullable(unsorted.get(name))
+                                            .map(v -> Stream.of(Tuple.of(name, v)))
+                                            .orElse(Stream.empty()));
+                          })
+                      .orElseGet(
+                          () ->
+                              taskService.getVariables(task.id()).entrySet().stream()
+                                  .map(e -> Tuple.of(e.getKey(), e.getValue())));
 
               List<TextObject> fields =
                   variables
@@ -79,8 +85,6 @@ public class MessageComponents {
                                   .text("*" + tuple._1() + ":*\n" + tuple._2())
                                   .build())
                       .collect(Collectors.toList());
-
-
 
               if (fields.isEmpty()) {
                 return Collections.<LayoutBlock>emptyList();

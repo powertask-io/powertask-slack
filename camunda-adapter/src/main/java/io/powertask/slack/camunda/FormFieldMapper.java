@@ -22,7 +22,7 @@ import io.powertask.slack.formfields.ImmutableEnumField;
 import io.powertask.slack.formfields.ImmutableEnumValue;
 import io.powertask.slack.formfields.ImmutableLongField;
 import io.powertask.slack.formfields.ImmutableStringField;
-import io.powertask.slack.formfields.StringField;
+import io.powertask.slack.formfields.ImmutableUserField;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -54,6 +54,7 @@ public class FormFieldMapper {
   private static final String PROPERTY_SLACK_DESCRIPTION_PREFIX = "slack-description-";
   private static final String PROPERTY_SLACK_TRUE_LABEL = "slack-true-label";
   private static final String PROPERTY_SLACK_FALSE_LABEL = "slack-false-label";
+  private static final String PROPERTY_SLACK_INPUT_TYPE = "slack-input-type";
 
   private FormFieldMapper() {}
 
@@ -74,18 +75,33 @@ public class FormFieldMapper {
     }
   }
 
-  public static StringField buildStringField(org.camunda.bpm.engine.form.FormField formField) {
-    return ImmutableStringField.builder()
-        .id(formField.getId())
-        .label(formField.getLabel())
-        .value(Optional.ofNullable(((StringValue) formField.getValue()).getValue()))
-        .required(hasConstraint(formField, CONSTRAINT_REQUIRED))
-        .hint(getStringProperty(formField, PROPERTY_SLACK_HINT))
-        .placeholder(getStringProperty(formField, PROPERTY_SLACK_PLACEHOLDER))
-        .multiline(getBooleanProperty(formField, PROPERTY_SLACK_MULTILINE).orElse(false))
-        .minLength(getConstraintValue(formField, CONSTRAINT_MINLENGTH).map(Integer::valueOf))
-        .maxLength(getConstraintValue(formField, CONSTRAINT_MAXLENGTH).map(Integer::valueOf))
-        .build();
+  public static FormField<?> buildStringField(org.camunda.bpm.engine.form.FormField formField) {
+    Optional<String> type = getStringProperty(formField, PROPERTY_SLACK_INPUT_TYPE);
+
+    if (type.equals(Optional.empty())) {
+      return ImmutableStringField.builder()
+          .id(formField.getId())
+          .label(formField.getLabel())
+          .value(Optional.ofNullable(((StringValue) formField.getValue()).getValue()))
+          .required(hasConstraint(formField, CONSTRAINT_REQUIRED))
+          .hint(getStringProperty(formField, PROPERTY_SLACK_HINT))
+          .placeholder(getStringProperty(formField, PROPERTY_SLACK_PLACEHOLDER))
+          .multiline(getBooleanProperty(formField, PROPERTY_SLACK_MULTILINE).orElse(false))
+          .minLength(getConstraintValue(formField, CONSTRAINT_MINLENGTH).map(Integer::valueOf))
+          .maxLength(getConstraintValue(formField, CONSTRAINT_MAXLENGTH).map(Integer::valueOf))
+          .build();
+    } else if (type.equals(Optional.of("user"))) {
+      return ImmutableUserField.builder()
+          .id(formField.getId())
+          .label(formField.getLabel())
+          .value(Optional.ofNullable(((StringValue) formField.getValue()).getValue()))
+          .required(hasConstraint(formField, CONSTRAINT_REQUIRED))
+          .hint(getStringProperty(formField, PROPERTY_SLACK_HINT))
+          .placeholder(getStringProperty(formField, PROPERTY_SLACK_PLACEHOLDER))
+          .build();
+    } else {
+      throw new RuntimeException("Unknown " + PROPERTY_SLACK_INPUT_TYPE);
+    }
   }
 
   public static EnumField buildEnumField(org.camunda.bpm.engine.form.FormField formField) {

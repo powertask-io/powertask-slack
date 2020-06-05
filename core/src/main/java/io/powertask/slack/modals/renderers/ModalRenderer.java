@@ -30,6 +30,7 @@ import io.powertask.slack.formfields.DateField;
 import io.powertask.slack.formfields.EnumField;
 import io.powertask.slack.formfields.LongField;
 import io.powertask.slack.formfields.StringField;
+import io.powertask.slack.formfields.UserField;
 import io.powertask.slack.modals.renderers.fieldrenderers.*;
 import io.powertask.slack.usertasks.Task;
 import io.powertask.slack.usertasks.renderers.MessageComponents;
@@ -92,6 +93,8 @@ public class ModalRenderer {
       return new LongFieldRenderer((LongField) field);
     } else if (field instanceof DateField) {
       return new DateFieldRenderer((DateField) field);
+    } else if (field instanceof UserField) {
+      return new UserFieldRenderer((UserField) field);
     } else {
       throw new RuntimeException("Missing implementation for field type " + field.getClass());
     }
