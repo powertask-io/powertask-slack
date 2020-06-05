@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_0sccty6" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.7.2">
   <bpmn:process id="movie-review-process" name="Review Movie" isExecutable="true" camunda:candidateStarterUsers="erik@eamelink.net">
-    <bpmn:userTask id="basic-review" name="Basic Review" camunda:assignee="${email}">
+    <bpmn:userTask id="basic-review" name="Basic Review" camunda:assignee="${userId}">
       <bpmn:extensionElements>
         <camunda:formData>
           <camunda:formField id="movie" label="Which movie did you see?" type="string">
@@ -53,7 +53,7 @@
       <bpmn:incoming>Flow_1nabk71</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_1nabk71" sourceRef="elaborate-review" targetRef="end-elaborate" />
-    <bpmn:userTask id="elaborate-review" name="Elaborate Review" camunda:assignee="${email}">
+    <bpmn:userTask id="elaborate-review" name="Elaborate Review" camunda:assignee="${userId}">
       <bpmn:extensionElements>
         <camunda:formData>
           <camunda:formField id="review" label="Movie Description" type="string">

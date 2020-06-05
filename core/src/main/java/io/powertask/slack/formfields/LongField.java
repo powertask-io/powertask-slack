@@ -20,9 +20,7 @@ import org.immutables.value.Value.Immutable;
 @Immutable
 public interface LongField extends FormField<Long> {
 
-  // TODO, share this in some interface with other fields
-  Optional<String> placeholder(); // FieldInformation.getPlainTextProperty(formField,
-  // PROPERTY_SLACK_PLACEHOLDER).orElse(null))
+  Optional<String> placeholder();
 
   Optional<Long> min();
 

@@ -11,28 +11,15 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package io.powertask.slack;
+package io.powertask.slack.camunda.spring.security.config;
 
-import io.powertask.slack.usertasks.Task;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-public interface TaskService {
-  Task taskById(String taskId);
+@ConfigurationProperties(prefix = "powertask.slack.authentication")
+@Data
+public class AuthenticationProperties {
 
-  List<Task> tasksByAssignee(String assignee);
-
-  Optional<Task> followUpTask(String processInstanceId, String assignee);
-
-  Map<String, Object> getVariables(String taskId);
-
-  Map<String, Object> getVariables(String taskId, Set<String> names);
-
-  Optional<Object> getVariable(String taskId, String name);
-
-  void setVariables(String taskId, Map<String, Object> variables);
-
-  void setVariable(String taskId, String name, Object value);
+  String clientId;
+  String clientSecret;
 }

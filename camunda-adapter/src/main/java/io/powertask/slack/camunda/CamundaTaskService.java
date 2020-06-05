@@ -15,9 +15,11 @@ package io.powertask.slack.camunda;
 
 import io.powertask.slack.TaskService;
 import io.powertask.slack.usertasks.Task;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CamundaTaskService implements TaskService {
 
@@ -32,6 +34,13 @@ public class CamundaTaskService implements TaskService {
   @Override
   public Task taskById(String taskId) {
     return taskMapper.fromTask(taskService.createTaskQuery().taskId(taskId).singleResult());
+  }
+
+  @Override
+  public List<Task> tasksByAssignee(String assignee) {
+    return taskService.createTaskQuery().taskAssignee(assignee).list().stream()
+        .map(taskMapper::fromTask)
+        .collect(Collectors.toList());
   }
 
   @Override

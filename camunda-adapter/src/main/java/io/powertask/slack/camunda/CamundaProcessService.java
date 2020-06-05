@@ -63,8 +63,7 @@ public class CamundaProcessService implements ProcessService {
                             .orElseGet(
                                 () -> "Nameless process with id " + processDefinition.getId()))
                     // TODO, this corresponds to the 'documentation' field in the Modeler. I think
-                    // we
-                    // should use the extension similar to tasks.
+                    //  we should use the extension similar to tasks.
                     .description(Optional.ofNullable(processDefinition.getDescription()))
                     .build())
         .collect(Collectors.toList());

@@ -27,8 +27,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ExampleApp implements CommandLineRunner {
   private static final Logger logger = LoggerFactory.getLogger(ExampleApp.class);
 
-  @Value("${sample-process.email}")
-  String email;
+  @Value("${sample-process.user-id}")
+  String userId;
 
   private final ProcessEngine processEngine;
   private final IdentitySync identitySync;
@@ -47,10 +47,10 @@ public class ExampleApp implements CommandLineRunner {
     identitySync.start();
 
     // Trigger a process :)
-    logger.info("Triggering the movie-review process for Slack user with email:" + email);
+    logger.info("Triggering the movie-review process for Slack user " + userId);
     processEngine
         .getRuntimeService()
         .startProcessInstanceByKey(
-            "movie-review-process", Collections.singletonMap("email", email));
+            "movie-review-process", Collections.singletonMap("userId", userId));
   }
 }

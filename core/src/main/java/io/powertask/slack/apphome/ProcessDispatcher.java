@@ -13,13 +13,6 @@
  */
 package io.powertask.slack.apphome;
 
-import static com.slack.api.model.block.Blocks.actions;
-import static com.slack.api.model.block.Blocks.divider;
-import static com.slack.api.model.block.Blocks.section;
-import static com.slack.api.model.block.composition.BlockCompositions.markdownText;
-import static com.slack.api.model.block.composition.BlockCompositions.plainText;
-import static com.slack.api.model.block.element.BlockElements.asElements;
-import static com.slack.api.model.block.element.BlockElements.button;
 import static io.powertask.slack.SlackApiOps.requireOk;
 
 import com.slack.api.bolt.App;
@@ -29,10 +22,8 @@ import com.slack.api.bolt.context.builtin.ViewSubmissionContext;
 import com.slack.api.bolt.request.builtin.BlockActionRequest;
 import com.slack.api.bolt.request.builtin.ViewSubmissionRequest;
 import com.slack.api.bolt.response.Response;
-import com.slack.api.model.block.LayoutBlock;
 import io.powertask.slack.Form;
 import io.powertask.slack.FormService;
-import io.powertask.slack.Process;
 import io.powertask.slack.ProcessService;
 import io.powertask.slack.StartEvent;
 import io.powertask.slack.TaskService;
@@ -40,11 +31,8 @@ import io.powertask.slack.identity.UserResolver;
 import io.powertask.slack.modals.renderers.ModalRenderer;
 import io.powertask.slack.usertasks.UserTaskDispatcher;
 import io.vavr.control.Either;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -160,7 +148,7 @@ public class ProcessDispatcher {
     // - If there's a form on the process; show it in a modal
     // - If there's no form, start the process here.
     //     - If there's a follow-up task, show it.
-    //     - If there's no follow-up task, show some feedback in some way. Maybe a an icon to the
+    //     - If there's no follow-up task, show some feedback in some way. Maybe add an icon to the
     // button?
     return formService
         .startForm(processDefinitionId)
@@ -178,37 +166,6 @@ public class ProcessDispatcher {
 
   private String generateSubmitModalActionId(String processDefinitionId) {
     return "modal-process-submit/" + processDefinitionId;
-  }
-
-  public List<LayoutBlock> processList(String slackUserId) {
-    String engineUserId = userResolver.toEngineUserId(slackUserId);
-    List<Process> processes = processService.startableProcesses(engineUserId);
-
-    List<LayoutBlock> blocks = new ArrayList<>();
-    blocks.add(section(s -> s.text(markdownText("*Processes you can start*"))));
-    blocks.add(divider());
-    processes.forEach(
-        p -> {
-          blocks.addAll(processStartBlocks(p));
-          blocks.add(divider());
-        });
-    return blocks;
-  }
-
-  private List<LayoutBlock> processStartBlocks(Process p) {
-    return Arrays.asList(
-        section(section -> section.text(markdownText("*" + p.name() + "*"))),
-        actions(
-            actions ->
-                actions
-                    .blockId("process/" + p.id())
-                    .elements(
-                        asElements(
-                            button(
-                                button ->
-                                    button
-                                        .actionId("process-start/" + p.id())
-                                        .text(plainText("Start")))))));
   }
 
   public void openModal(ActionContext ctx, StartEvent startEvent, Form form) {

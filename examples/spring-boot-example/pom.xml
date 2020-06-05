@@ -13,12 +13,12 @@
     <name>Powertask Slack - Example Spring Boot</name>
 
     <properties>
-        <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
+        <spring-boot.version>2.3.0.RELEASE</spring-boot.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-            <!-- Spring Boot 2.2.6 uses 3.14.7, but the Slack API is built for 4.4.1 -->
+            <!-- Spring Boot 2.3.0 uses 3.14.8, but the Slack API is built for 4.4.1 -->
             <dependency>
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
@@ -35,11 +35,8 @@
     </dependencyManagement>
 
     <dependencies>
+
         <!-- This depends on the camunda web starter, so we get that for free -->
-        <dependency>
-            <groupId>io.powertask.slack</groupId>
-            <artifactId>powertask-slack-camunda-spring-boot-starter</artifactId>
-        </dependency>
         <dependency>
             <groupId>io.powertask.slack</groupId>
             <artifactId>powertask-slack-camunda-spring-boot-starter-web-authentication</artifactId>
@@ -48,13 +45,6 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-        </dependency>
-
-        <!-- Test Dependencies -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
         </dependency>
 
     </dependencies>

@@ -18,12 +18,14 @@
 logging:
   level:
     io.powertask.slack: DEBUG
+    com.slack.api.bolt: DEBUG
+    org.springframework.security: DEBUG
 
 server:
   port: 3000
 
 
-sample-process.email: ${SAMPLE_PROCESS_EMAIL}
+sample-process.user-id: ${SAMPLE_PROCESS_USERID}
 
 slack:
   token: ${SLACK_TOKEN}
@@ -31,15 +33,16 @@ slack:
   bolt:
     single-team-bot-token: ${slack.token}
     signing-secret: ${SLACK_SIGNING_SECRET}
-    client-id: ${SLACK_CLIENT_ID}
-    client-secret: ${SLACK_CLIENT_SECRET}
+
 camunda:
   bpm:
     admin-user:
       id: "admin"
       password: "admin"
 
-
 powertask.servicetasks.slackservice.enabled: true
-
 powertask.slack.camunda.identitysync.group-mode: channels
+
+powertask.slack.authentication.client-id: ${SLACK_CLIENT_ID}
+powertask.slack.authentication.client-secret: ${SLACK_CLIENT_SECRET}
+

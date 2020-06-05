@@ -22,7 +22,6 @@ import org.immutables.value.Value.Immutable;
 @Immutable
 public interface EnumField extends FormField<String> {
 
-  // TODO, move to subtype
   Map<String, EnumValue> values();
 
   @Immutable
