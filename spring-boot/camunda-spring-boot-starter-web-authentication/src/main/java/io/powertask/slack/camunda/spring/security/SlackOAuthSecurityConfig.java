@@ -53,12 +53,15 @@ public class SlackOAuthSecurityConfig extends WebSecurityConfigurerAdapter {
   // @formatter:off
   protected void configure(HttpSecurity http) throws Exception {
     ClientRegistrationRepository clientRegistrationRepository = clientRegistrationRepository();
-    http.requestMatcher(req ->
-        req.getRequestURI().startsWith("/login/") ||
-            req.getRequestURI().startsWith("/oauth2/") ||
-            req.getRequestURI().startsWith("/app/") ||
-            req.getRequestURI().startsWith("/api/"))
-        .authorizeRequests().anyRequest().authenticated()
+    http.requestMatcher(
+            req ->
+                req.getRequestURI().startsWith("/login/")
+                    || req.getRequestURI().startsWith("/oauth2/")
+                    || req.getRequestURI().startsWith("/app/")
+                    || req.getRequestURI().startsWith("/api/"))
+        .authorizeRequests()
+        .anyRequest()
+        .authenticated()
         .and()
         .oauth2Login()
         .clientRegistrationRepository(clientRegistrationRepository)
@@ -79,8 +82,7 @@ public class SlackOAuthSecurityConfig extends WebSecurityConfigurerAdapter {
         ClientRegistration.withRegistrationId("slack")
             .clientId(authenticationProperties.getClientId())
             .clientSecret(authenticationProperties.getClientSecret())
-            .clientAuthenticationMethod(
-                ClientAuthenticationMethod.POST)
+            .clientAuthenticationMethod(ClientAuthenticationMethod.POST)
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .redirectUriTemplate("{baseUrl}/login/oauth2/code/{registrationId}")
             .clientName("Slack")
@@ -93,7 +95,7 @@ public class SlackOAuthSecurityConfig extends WebSecurityConfigurerAdapter {
 
   // Response client configured to use the SlackOAuth2AccessTokenResponseHttpMessageConverter
   private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
-  accessTokenResponseClient() {
+      accessTokenResponseClient() {
 
     SlackOAuth2AccessTokenResponseHttpMessageConverter tokenResponseHttpMessageConverter =
         new SlackOAuth2AccessTokenResponseHttpMessageConverter();
@@ -110,10 +112,9 @@ public class SlackOAuthSecurityConfig extends WebSecurityConfigurerAdapter {
     return accessTokenResponseClient;
   }
 
-
   @Bean
   public FilterRegistrationBean<ContainerBasedAuthenticationFilter>
-  containerBasedAuthenticationFilter() {
+      containerBasedAuthenticationFilter() {
     FilterRegistrationBean<ContainerBasedAuthenticationFilter> filterRegistration =
         new FilterRegistrationBean<>();
     filterRegistration.setFilter(new ContainerBasedAuthenticationFilter());
