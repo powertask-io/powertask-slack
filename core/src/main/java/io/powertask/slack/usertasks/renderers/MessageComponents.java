@@ -22,11 +22,15 @@ import com.slack.api.model.block.composition.TextObject;
 import io.powertask.slack.TaskLike;
 import io.powertask.slack.TaskService;
 import io.powertask.slack.usertasks.Task;
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MessageComponents {
 
@@ -54,23 +58,31 @@ public class MessageComponents {
     return task.showVariables()
         .map(
             variableNames -> {
-              Map<String, Object> variables =
+              Stream<Tuple2<String, Object>> variables =
                   variableNames
-                      .map(names -> taskService.getVariables(task.id(), new HashSet<>(names)))
-                      .orElseGet(() -> taskService.getVariables(task.id()));
+                      .map(names -> {
+                        Map<String, Object> unsorted = taskService
+                            .getVariables(task.id(), new HashSet<>(names));
 
-              // TODO, sort this to maintain the order of the variableNames!
+                        return names.stream().flatMap(name ->
+                          Optional.ofNullable(unsorted.get(name)).map(v ->
+                              Stream.of(Tuple.of(name, v))).orElse(Stream.empty()));
+                      })
+                      .orElseGet(() -> taskService.getVariables(task.id()).entrySet().stream().map(e -> Tuple
+                          .of(e.getKey(), e.getValue())));
+
               List<TextObject> fields =
-                  variables.entrySet().stream()
+                  variables
                       .map(
-                          entrySet ->
+                          tuple ->
                               MarkdownTextObject.builder()
-                                  .text("*" + entrySet.getKey() + ":*\n" + entrySet.getValue())
+                                  .text("*" + tuple._1() + ":*\n" + tuple._2())
                                   .build())
                       .collect(Collectors.toList());
 
+
+
               if (fields.isEmpty()) {
-                // TODO, or throw here?
                 return Collections.<LayoutBlock>emptyList();
               } else {
                 return Collections.<LayoutBlock>singletonList(
