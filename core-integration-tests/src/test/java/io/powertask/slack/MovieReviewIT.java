@@ -100,6 +100,6 @@ public class MovieReviewIT extends AbstractIntegrationTest {
 
     // TODO, we should figure out how to cut down on the 'authtest' calls. See
     //   https://github.com/slackapi/java-slack-sdk/issues/468
-    new IntegerAssert(wireMockServer.getAllServeEvents().size()).isBetween(9, 10);
+    new IntegerAssert(wireMockServer.getAllServeEvents().size()).isBetween(8, 10);
   }
 }

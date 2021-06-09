@@ -15,10 +15,8 @@ package io.powertask.slack.modals.renderers.fieldrenderers;
 
 import com.slack.api.model.block.composition.BlockCompositions;
 import com.slack.api.model.block.element.BlockElement;
-import com.slack.api.model.block.element.PlainTextInputElement;
 import com.slack.api.model.block.element.UsersSelectElement;
 import com.slack.api.model.view.ViewState;
-import io.powertask.slack.formfields.StringField;
 import io.powertask.slack.formfields.UserField;
 import io.vavr.control.Either;
 import java.util.Map;

@@ -14,7 +14,7 @@
 package io.powertask.slack;
 
 import com.slack.api.methods.SlackApiException;
-import com.slack.api.methods.SlackApiResponse;
+import com.slack.api.methods.SlackApiTextResponse;
 import java.io.IOException;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ public class SlackApiOps {
     T get() throws IOException, SlackApiException;
   }
 
-  public static <T extends SlackApiResponse> T requireOk(SlackApiCall<T> call) {
+  public static <T extends SlackApiTextResponse> T requireOk(SlackApiCall<T> call) {
     try {
       T response = call.get();
       if (response.isOk()) {

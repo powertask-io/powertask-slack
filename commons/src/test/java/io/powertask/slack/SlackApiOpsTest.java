@@ -13,7 +13,7 @@
  */
 package io.powertask.slack;
 
-import com.slack.api.methods.SlackApiResponse;
+import com.slack.api.methods.SlackApiTextResponse;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 import java.io.IOException;
 import org.junit.jupiter.api.Assertions;
@@ -24,7 +24,7 @@ class SlackApiOpsTest {
   @Test
   public void successResponse() {
 
-    SlackApiResponse response = new ChatPostMessageResponse();
+    SlackApiTextResponse response = new ChatPostMessageResponse();
     response.setOk(true);
 
     Assertions.assertEquals(response, SlackApiOps.requireOk(() -> response));
@@ -32,7 +32,7 @@ class SlackApiOpsTest {
 
   @Test
   public void errorResponse() {
-    SlackApiResponse response = new ChatPostMessageResponse();
+    SlackApiTextResponse response = new ChatPostMessageResponse();
     response.setOk(false);
     response.setError("BOOM!");
 

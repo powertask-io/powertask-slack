@@ -16,7 +16,7 @@
   <description>Parent Pom of all Powertask Slack modules</description>
 
   <properties>
-    <version.slack>1.0.7</version.slack>
+    <version.slack>1.8.1</version.slack>
     <version.junit>5.6.0</version.junit>
     <version.slf4j>1.7.30</version.slf4j>
     <version.immutables>2.8.2</version.immutables>
