@@ -17,10 +17,10 @@
 
   <properties>
     <version.slack>1.8.1</version.slack>
-    <version.junit>5.6.0</version.junit>
+    <version.junit>5.7.1</version.junit>
     <version.slf4j>1.7.30</version.slf4j>
-    <version.immutables>2.8.2</version.immutables>
-    <version.vavr>0.9.2</version.vavr>
+    <version.immutables>2.8.8</version.immutables>
+    <version.vavr>0.10.3</version.vavr>
   </properties>
 
   <dependencyManagement>
